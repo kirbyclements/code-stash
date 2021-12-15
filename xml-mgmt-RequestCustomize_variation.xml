@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:man="http://www.datapower.com/schemas/management">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <man:request domain="kirby_domain">
+            <!--<dp:get-samlart user="kirby" password=""/>-->
+            <!--<man:get-file name="local:///imagetest.jpg"/>-->
+            <!--<man:set-file name="cert:///TEST-sscert.pem"/>-->
+            <man:do-action>
+                <Keygen>
+                    <CN>10.0.20.20</CN>
+                    <ExportKey>on</ExportKey>
+                    <!--Optional:-->
+                    <GenSSCert>on</GenSSCert>
+                    <!--Optional:-->
+                    <ExportSSCert>on</ExportSSCert>
+                    <!--Optional:-->
+                    <GenObject>on</GenObject>
+                    <!--Optional:-->
+                    <ObjectName>10.0.20.20</ObjectName>
+                </Keygen>
+                <CryptoExport>
+                    <ObjectType>cert</ObjectType>
+                    <ObjectName>10.0.20.20</ObjectName>
+                    <OutputFilename>10.0.20.20</OutputFilename>
+                    <Mechanism>hsmkwk</Mechanism>
+                </CryptoExport>
+            </man:do-action>
+            <man:set-config>
+                <CryptoIdentCred name="10.0.20.20_IDCREDS" local="?" intrinsic="?" read-only="?"
+                    external="?">
+                    <!--Optional:-->
+                    <mAdminState>enabled</mAdminState>
+                    <!--You have a CHOICE of the next 3 items at this level-->
+                    <Key class="?">10.0.20.20</Key>
+                    <Certificate class="?">10.0.20.20</Certificate>
+                    <!--Zero or more repetitions:-->
+                    <CA class="?">10.0.20.20</CA>
+                </CryptoIdentCred>
+            </man:set-config>
+        </man:request>
+    </soapenv:Body>
+</soapenv:Envelope>

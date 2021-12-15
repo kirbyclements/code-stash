@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:man="http://www.datapower.com/schemas/management">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <man:request domain="kirby_domain">
+            <man:set-config>
+                <CryptoIdentCred name="10.0.20.20_IDCREDS_2">
+                    <!--Optional:-->
+                    <mAdminState>enabled</mAdminState>
+                    <!--You have a CHOICE of the next 3 items at this level-->
+                    <Key>10.0.20.20</Key>
+                    <Certificate>10.0.20.20</Certificate>
+                    <!--Zero or more repetitions:-->
+                    <CA/>
+                </CryptoIdentCred>
+            </man:set-config>
+        </man:request>
+    </soapenv:Body>
+</soapenv:Envelope>
