@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+<env:Body>
+<dp:request domain="kirby_domain" xmlns:dp="http://www.datapower.com/schemas/management">
+<dp:get-status class="ActiveUsers"/>
+<dp:get-status class="HTTPMeanTransactionTime"/>
+</dp:request>
+<dp:do-export>
+<xsd:element name="do-export">
+<xsd:complexType>
+<xsd:sequence>
+<xsd:element name="user-comment" type="xsd:string" minOccurs="0" />
+<xsd:element name="object" minOccurs="1" maxOccurs="unbounded">
+<xsd:complexType> <xsd:attribute name="class" type="xsd:string" />
+<xsd:attribute name="name" type="xsd:string" />
+<xsd:attribute name="ref-objects" type="xsd:boolean" />
+</xsd:complexType>
+</xsd:element>
+</xsd:sequence>
+<xsd:attribute name="format" type="tns:export-format" />
+<xsd:attribute name="all-files" type="xsd:boolean" />
+</xsd:complexType>
+</xsd:element>
+<dp:do-export format="ZIP">
+<user-comment>Firewall config as of the first</user-comment>
+<object class="xmlfirewall" ref-objects="true" ref-files="true"/>
+</dp:do-export>
+</env:Body>
+</env:Envelope>

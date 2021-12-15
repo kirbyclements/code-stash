@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"> 
+    <soapenv:Body>
+        <dp:request xmlns:dp="http://www.datapower.com/schemas/management"> 
+            <dp:do-backup format="ZIP">
+                <dp:domain name="WS_Customer"/>
+                <dp:domain name="WS_Vehicle"/>
+                <!-- enter all the application domains you want to be included in your domain backup, here only the default domain will be included in the backup, for a entire system backup use <dp:domain name=”all-domains”/>-->
+            </dp:do-backup>
+        </dp:request>
+    </soapenv:Body>
+</soapenv:Envelope>
+

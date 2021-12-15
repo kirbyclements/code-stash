@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <dp:request xmlns:dp="http://www.datapower.com/schemas/management">
+            <dp:do-restore source-type="ZIP">
+                <dp:input-file>Base64_Encoded_File</dp:input-file>
+                <dp:domain name="WS_Customer"/>
+                <!-- enter all the domains you want to be restored -->
+            </dp:do-restore>
+            <dp:do-action>
+                <SaveConfig/>
+            </dp:do-action>
+        </dp:request>
+    </soapenv:Body>
+</soapenv:Envelope>

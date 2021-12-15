@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:man="http://www.datapower.com/schemas/management">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <man:request domain="STG_PCPS">
+            <man:get-status class="Version"/>
+        </man:request>
+        <!-- *********************************** -->
+        <man:request domain="STG_PCPS">
+            <man:get-status class="FilesystemStatus"/>
+        </man:request>
+        <man:request domain="STG_PCPS">
+            <man:get-status class="TCPSummary"/>
+        </man:request>
+        <man:request domain="STG_PCPS">
+            <man:get-status class="ServicesStatus"/>
+        </man:request>
+    </soapenv:Body>
+</soapenv:Envelope>

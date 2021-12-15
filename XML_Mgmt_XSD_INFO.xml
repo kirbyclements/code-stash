@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Clone HSM Key Wrapping Key-->
+
+<xsd:complexType name="ActionHSMCloneKWK">
+    <xsd:sequence>
+        <xsd:element name="InputFilename" type="tns:dmFSFile" minOccurs="0" maxOccurs="1" />
+        <xsd:element name="OutputFilename" type="tns:dmString" minOccurs="0" maxOccurs="1" />
+    </xsd:sequence>
+</xsd:complexType>
+<!--HSM ReInit-->
+<xsd:complexType name="ActionHSMReInit">
+    <xsd:sequence>
+        <xsd:element name="fips-level" type="tns:dmString" minOccurs="0" maxOccurs="1" />
+        <xsd:element name="so-password" type="tns:dmString" minOccurs="0" maxOccurs="1" />
+        <xsd:element name="user-password" type="tns:dmString" minOccurs="0" maxOccurs="1" />
+        <xsd:element name="hsm-domain" type="tns:dmString" minOccurs="0" maxOccurs="1" />
+    </xsd:sequence>
+</xsd:complexType>
+
+
+<xsd:enumeration value="HSMKeyStatus" />

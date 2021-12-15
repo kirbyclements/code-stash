@@ -1,0 +1,36 @@
+<!-- we would call this within a processing policy, possibly put in the Auto service -->
+
+<xsl:variable name="zip" select="$result//"/>*
+<xsl:variable name="callRestore">
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:man="http://www.datapower.com/schemas/management">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <man:request>
+                <man:do-restore source-type="ZIP" dry-run="false" overwrite-files="true" overwrite-objects="true" >
+                    <man:input-file><xsl:value-of select="$zip"/></man:input-file>
+                    <man:domain name="WS_Customer" import-domain="true"/>
+                </man:do-restore>
+            </man:request>
+        </soapenv:Body>
+    </soapenv:Envelope>
+</xsl:variable>
+
+
+<!-- another version calling the variable above -->
+
+<xsl:variable name="restoreSoapCall">		
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dp="http://www.datapower.com/schemas/management">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <dp:request>
+                <dp:do-restore source-type="ZIP" dry-run="false" overwrite-files="true" overwrite-objects="true" >
+                    <dp:input-file><xsl:value-of select="$zip"/></dp:input-file>
+                    <dp:domain name="PruebaImportacion" import-domain="true" reset-domain="true" />
+                </dp:do-restore>
+                <dp:do-action>
+                    <SaveConfig/>
+                </dp:do-action>
+            </dp:request>
+        </soapenv:Body>
+    </soapenv:Envelope>
+</xsl:variable>
