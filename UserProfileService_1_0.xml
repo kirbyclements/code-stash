@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2007  CIGNA Corporation. All Rights Reserved.-->
-<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:upbi="http://www.cigna.com/user/bi/1/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.cigna.com/user/location/userprofile/1/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://www.cigna.com/user/location/userprofile/1/">
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:upbi="http://www.hello.com/user/bi/1/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.hello.com/user/location/userprofile/1/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://www.hello.com/user/location/userprofile/1/">
 	<wsdl:types>
-		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.cigna.com/user/location/userprofile/1/" elementFormDefault="qualified">
-			<xsd:import namespace="http://www.cigna.com/user/bi/1/" schemaLocation="http://www.cigna.com/user/bi/UserProfileDetail_1_0.xsd"/>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.hello.com/user/location/userprofile/1/" elementFormDefault="qualified">
+			<xsd:import namespace="http://www.hello.com/user/bi/1/" schemaLocation="http://www.hello.com/user/bi/UserProfileDetail_1_0.xsd"/>
 			<xsd:element name="locateProfile">
 				<xsd:complexType>
 					<xsd:all>
@@ -83,7 +82,7 @@
 	<wsdl:binding name="ProfileLocatorSoap" type="tns:ProfileLocatorSoap">
 		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
 		<wsdl:operation name="locateProfile">
-			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateProfile" style="document"/>
+			<soap:operation soapAction="http://www.hello.com/user/location/userprofile/1/locateProfile" style="document"/>
 			<wsdl:input name="locateProfileSoapIn">
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -92,7 +91,7 @@
 			</wsdl:output>
 		</wsdl:operation>
 		<wsdl:operation name="locateAccountRestriction">
-			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateAccountRestriction" style="document"/>
+			<soap:operation soapAction="http://www.hello.com/user/location/userprofile/1/locateAccountRestriction" style="document"/>
 			<wsdl:input name="locateAccountRestrictionSoapIn">
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -101,7 +100,7 @@
 			</wsdl:output>
 		</wsdl:operation>
 		<wsdl:operation name="locateEnterpriseGroupMembership">
-			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateEnterpriseGroupMembership" style="document"/>
+			<soap:operation soapAction="http://www.hello.com/user/location/userprofile/1/locateEnterpriseGroupMembership" style="document"/>
 			<wsdl:input name="locateEnterpriseGroupMembershipSoapIn">
 				<soap:body use="literal"/>
 			</wsdl:input>
@@ -112,7 +111,7 @@
 	</wsdl:binding>
 	<wsdl:service name="ProfileLocator">
 		<wsdl:port name="ProfileLocatorLB" binding="tns:ProfileLocatorSoap">
-			<soap:address location="https://wdcsn135b.sys.cigna.com:64665/eProxy/service/ProfileLocator_Router"/>
+			<soap:address location="https://wdcsn13.com:64665/eProxy/service/ProfileLocator_Router"/>
 		</wsdl:port>
 	</wsdl:service>
 </wsdl:definitions>
