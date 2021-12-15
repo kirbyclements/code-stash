@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:ns1="http://www.cigna.com/user/bi/1/" xmlns:dpconfig="http://www.datapower.com/param/config" xmlns:dpquery="http://www.datapower.com/param/query" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp dpconfig dpquery">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:ns1="http://www.hello.com/user/bi/1/" xmlns:dpconfig="http://www.datapower.com/param/config" xmlns:dpquery="http://www.datapower.com/param/query" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp dpconfig dpquery">
   
 <xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
 
@@ -24,7 +24,7 @@
     </wsse:Security>
 
 <!--
-    <rh:requestHeader xmlns:rh="http://www.cigna.com/utility/1/">
+    <rh:requestHeader xmlns:rh="http://www.hello.com/utility/1/">
       <serviceReferenceId>88d25028-2fee-4f6b-8bee-414804e726f5</serviceReferenceId> 
       <rh:functionalContext>
         <consumerName>WEB-ECM-IBM</consumerName> 
@@ -45,7 +45,7 @@
 
 
 
-    <rh:requestHeader xmlns:rh="http://www.cigna.com/utility/1/">
+    <rh:requestHeader xmlns:rh="http://www.hello.com/utility/1/">
       <serviceReferenceId>88d25028-2fee-4f6b-8bee-414804e726f5</serviceReferenceId> 
       <rh:functionalContext>
         <consumerName>WEB-ECM-IBM</consumerName> 
@@ -65,7 +65,7 @@
 
   </soapenv:Header>
 
-  <soapenv:Body xmlns:ns="http://www.cigna.com/content/search/1/" xmlns:ns1="http://www.cigna.com/content/search/bi/1/">
+  <soapenv:Body xmlns:ns="http://www.hello.com/content/search/1/" xmlns:ns1="http://www.hello.com/content/search/bi/1/">
     <ns:searchByContentAttributesRequest>
       <ns1:searchByContentAttributesRequest>
         <ns1:searchCriteria><xsl:value-of select="//arg[@name='searchCriteria']"/></ns1:searchCriteria>
