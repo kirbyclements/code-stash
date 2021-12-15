@@ -51,8 +51,8 @@
         <consumerName>WEB-ECM-IBM</consumerName> 
         <userPrincipal>
           <userId>JEALLY</userId> 
-          <orgRole>cn=CIGNA CSA</orgRole> 
-          <appRole>cn=CIGNA CSA</appRole>
+          <orgRole>cn=HELLO CSA</orgRole> 
+          <appRole>cn=HELLO CSA</appRole>
         </userPrincipal>
       <target>
         <serviceName>ECM</serviceName> 
