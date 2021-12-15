@@ -12,7 +12,7 @@
    <soapenv:Body>
       <soap:isUserAccessAllowed soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <in0 xsi:type="xsd:string">GXFEHR</in0>
-         <in1 xsi:type="xsd:string">CIGNA POC:CTR:Benefits</in1>
+         <in1 xsi:type="xsd:string">HELLO POC:CTR:Benefits</in1>
          <in2 xsi:type="xsd:string">any</in2>
       </soap:isUserAccessAllowed>
    </soapenv:Body>
