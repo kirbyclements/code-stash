@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007  CIGNA Corporation. All Rights Reserved.-->
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:upbi="http://www.cigna.com/user/bi/1/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.cigna.com/user/location/userprofile/1/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://www.cigna.com/user/location/userprofile/1/">
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.cigna.com/user/location/userprofile/1/" elementFormDefault="qualified">
+			<xsd:import namespace="http://www.cigna.com/user/bi/1/" schemaLocation="http://www.cigna.com/user/bi/UserProfileDetail_1_0.xsd"/>
+			<xsd:element name="locateProfile">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateProfile"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="locateProfileResponse">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateProfileResponse"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="locateAccountRestriction">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateAccountRestriction"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="locateAccountRestrictionResponse">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateAccountRestrictionResponse"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="locateEnterpriseGroupMembership">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateEnterpriseGroupMembership"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="locateEnterpriseGroupMembershipResponse">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element ref="upbi:locateEnterpriseGroupMembershipResponse"/>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="locateProfileSoapIn">
+		<wsdl:part name="parameters" element="tns:locateProfile"/>
+	</wsdl:message>
+	<wsdl:message name="locateProfileSoapOut">
+		<wsdl:part name="parameters" element="tns:locateProfileResponse"/>
+	</wsdl:message>
+	<wsdl:message name="locateAccountRestrictionSoapIn">
+		<wsdl:part name="parameters" element="tns:locateAccountRestriction"/>
+	</wsdl:message>
+	<wsdl:message name="locateAccountRestrictionSoapOut">
+		<wsdl:part name="parameters" element="tns:locateAccountRestrictionResponse"/>
+	</wsdl:message>
+	<wsdl:message name="locateEnterpriseGroupMembershipSoapIn">
+		<wsdl:part name="parameters" element="tns:locateEnterpriseGroupMembership"/>
+	</wsdl:message>
+	<wsdl:message name="locateEnterpriseGroupMembershipSoapOut">
+		<wsdl:part name="parameters" element="tns:locateEnterpriseGroupMembershipResponse"/>
+	</wsdl:message>
+	<wsdl:portType name="ProfileLocatorSoap">
+		<wsdl:operation name="locateProfile">
+			<wsdl:input name="locateProfileSoapIn" message="tns:locateProfileSoapIn"/>
+			<wsdl:output name="locateProfileSoapOut" message="tns:locateProfileSoapOut"/>
+		</wsdl:operation>
+		<wsdl:operation name="locateAccountRestriction">
+			<wsdl:input name="locateAccountRestrictionSoapIn" message="tns:locateAccountRestrictionSoapIn"/>
+			<wsdl:output name="locateAccountRestrictionSoapOut" message="tns:locateAccountRestrictionSoapOut"/>
+		</wsdl:operation>
+		<wsdl:operation name="locateEnterpriseGroupMembership">
+			<wsdl:input name="locateEnterpriseGroupMembershipSoapIn" message="tns:locateEnterpriseGroupMembershipSoapIn"/>
+			<wsdl:output name="locateEnterpriseGroupMembershipSoapOut" message="tns:locateEnterpriseGroupMembershipSoapOut"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="ProfileLocatorSoap" type="tns:ProfileLocatorSoap">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="locateProfile">
+			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateProfile" style="document"/>
+			<wsdl:input name="locateProfileSoapIn">
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="locateProfileSoapOut">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="locateAccountRestriction">
+			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateAccountRestriction" style="document"/>
+			<wsdl:input name="locateAccountRestrictionSoapIn">
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="locateAccountRestrictionSoapOut">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="locateEnterpriseGroupMembership">
+			<soap:operation soapAction="http://www.cigna.com/user/location/userprofile/1/locateEnterpriseGroupMembership" style="document"/>
+			<wsdl:input name="locateEnterpriseGroupMembershipSoapIn">
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output name="locateEnterpriseGroupMembershipSoapOut">
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="ProfileLocator">
+		<wsdl:port name="ProfileLocatorLB" binding="tns:ProfileLocatorSoap">
+			<soap:address location="https://wdcsn135b.sys.cigna.com:64665/eProxy/service/ProfileLocator_Router"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

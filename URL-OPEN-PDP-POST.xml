@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:ns1="http://www.cigna.com/user/bi/1/" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp">
+  
+<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
+
+<xsl:template match="/*">
+
+<xsl:variable name="PDP_Request">
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://soap.listener.pdp.securent.net">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <soap:isUserAccessAllowed soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <in0 xsi:type="xsd:string">GXFEHR</in0>
+         <in1 xsi:type="xsd:string">CIGNA POC:CTR:Benefits</in1>
+         <in2 xsi:type="xsd:string">any</in2>
+      </soap:isUserAccessAllowed>
+   </soapenv:Body>
+</soapenv:Envelope>
+</xsl:variable>
+
+<xsl:variable name="PDP_POST">
+<dp:url-open target="http://s-datapower-dev.silver.com:8008/pdp/services/PDPService">
+<xsl:copy-of select="$PDP_Request"/>
+</dp:url-open>
+</xsl:variable>
+
+<xsl:copy-of select="$PDP_POST"/>
+
+</xsl:template>
+
+</xsl:stylesheet>
+

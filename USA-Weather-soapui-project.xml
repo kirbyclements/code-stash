@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project name="USA Weather" resourceRoot="" soapui-version="3.6.1" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="WeatherForecastSoap" type="wsdl" bindingName="{http://www.webservicex.net}WeatherForecastSoap" soapVersion="1_1" anonymous="optional" definition="http://www.webservicex.net/WeatherForecast.asmx?WSDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:endpoints><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint></con:endpoints><con:operation isOneWay="false" action="http://www.webservicex.net/GetWeatherByPlaceName" name="GetWeatherByPlaceName" bindingOperationName="GetWeatherByPlaceName" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://www.webservicex.net">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <web:GetWeatherByPlaceName>
+         <!--Optional:-->
+         <web:PlaceName>gero et</web:PlaceName>
+      </web:GetWeatherByPlaceName>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.webservicex.net/GetWeatherByPlaceName"/></con:call></con:operation><con:operation isOneWay="false" action="http://www.webservicex.net/GetWeatherByZipCode" name="GetWeatherByZipCode" bindingOperationName="GetWeatherByZipCode" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://www.webservicex.net">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <web:GetWeatherByZipCode>
+         <!--Optional:-->
+         <web:ZipCode>gero et</web:ZipCode>
+      </web:GetWeatherByZipCode>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.webservicex.net/GetWeatherByZipCode"/></con:call></con:operation></con:interface><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="WeatherForecastSoap12" type="wsdl" bindingName="{http://www.webservicex.net}WeatherForecastSoap12" soapVersion="1_2" anonymous="optional" definition="http://www.webservicex.net/WeatherForecast.asmx?WSDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:endpoints><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint></con:endpoints><con:operation isOneWay="false" action="http://www.webservicex.net/GetWeatherByPlaceName" name="GetWeatherByPlaceName" bindingOperationName="GetWeatherByPlaceName" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint><con:request><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:web="http://www.webservicex.net">
+   <soap:Header/>
+   <soap:Body>
+      <web:GetWeatherByPlaceName>
+         <!--Optional:-->
+         <web:PlaceName>gero et</web:PlaceName>
+      </web:GetWeatherByPlaceName>
+   </soap:Body>
+</soap:Envelope>]]></con:request><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.webservicex.net/WeatherForecastSoap/GetWeatherByPlaceNameRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation isOneWay="false" action="http://www.webservicex.net/GetWeatherByZipCode" name="GetWeatherByZipCode" bindingOperationName="GetWeatherByZipCode" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://www.webservicex.net/WeatherForecast.asmx</con:endpoint><con:request><![CDATA[<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:web="http://www.webservicex.net">
+   <soap:Header/>
+   <soap:Body>
+      <web:GetWeatherByZipCode>
+         <!--Optional:-->
+         <web:ZipCode>32459</web:ZipCode>
+      </web:GetWeatherByZipCode>
+   </soap:Body>
+</soap:Envelope>]]></con:request><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://www.webservicex.net/WeatherForecastSoap/GetWeatherByZipCodeRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/></con:soapui-project>

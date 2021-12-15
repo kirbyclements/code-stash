@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp">
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+	
+	<!--<xsl:variable name="responsecode" select="dp:http-response-header('x-dp-response-code')"/>-->
+	<xsl:variable name="responsecode" select="dp:variable('var://context/xacml/respCode')"/>
+	<xsl:template match="/">
+	<xsl:message dp:priority="info">responsecode is <xsl:value-of select="$responsecode"/></xsl:message>
+		<xsl:choose>
+			<xsl:when test="$responsecode = '200'">
+				<dp:accept/>
+			</xsl:when>
+			<xsl:otherwise>
+				<dp:set-variable name="'var://context/error/errorcode'" value="document('local:///identityDocument.xml')/ecm/services/errorcodes/code102"/>
+				<dp:reject override="true">Message rejected by Policy</dp:reject>
+				<dp:set-variable name="'var://context/error/errorcode'" value="'DP_ECM_102'"/>
+				<!--<dp:send-error override="true">
+					<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+						<env:Body>
+							<env:Fault>
+								<faultcode>500</faultcode>
+								<faultstring>Message rejected by Policy</faultstring>
+							</env:Fault>
+						</env:Body>
+					</env:Envelope>
+				</dp:send-error>-->
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+</xsl:stylesheet>

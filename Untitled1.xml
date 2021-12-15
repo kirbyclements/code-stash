@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ns="http://docs.oasis-open.org/ns/cmis/messaging/200908/"
+    xmlns:ns1="http://docs.oasis-open.org/ns/cmis/core/200908/"
+    xmlns:p8ext="http://www.ibm.com/xmlns/prod/ecm/cmis/p8extensions">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ns:createDocument>
+            <ns:repositoryId>ABC</ns:repositoryId>
+            <ns:properties>
+                <ns1:propertyString propertyDefinitionId="cmis:name">
+                    <ns1:value>CCITT_2.TIF</ns1:value>
+                </ns1:propertyString>
+                <ns1:propertyId propertyDefinitionId="cmis:objectTypeId">
+                    <ns1:value>BLAH</ns1:value>
+                </ns1:propertyId>
+                <ns1:propertyString displayName="Validation Operator ID" localName="VALDN_OPR_ID"
+                    propertyDefinitionId="VALDN_OPR_ID" queryName="VALDN_OPR_ID">
+                    <ns1:value>B795555</ns1:value>
+                </ns1:propertyString>
+            </ns:properties>
+        </ns:createDocument>
+    </soapenv:Body>
+</soapenv:Envelope>
