@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Body>
+        <dp:request xmlns:dp="http://www.datapower.com/schemas/management"  domain="default">
+            <dp:do-action>
+                <SecureRestore>
+                    <cred>MyCryptoCred</cred>
+                    <source>ftp://ftpuser:passw0rd@ipaddress:port/BackupDir</source>
+                    <validate>off</validate>
+                    <BackupMachineType>9235</BackupMachineType>
+                </SecureRestore>
+            </dp:do-action>
+        </dp:request>	
+    </env:Body>
+</env:Envelope>
