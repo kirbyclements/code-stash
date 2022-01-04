@@ -1,0 +1,2066 @@
+
+
+XSLT for DataPower
+*****************************************************************
+
+this turns xml to json:
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        <xsl:output method="text" encoding="utf-8"/>
+        <xsl:template match="/node()">
+               <xsl:text>{</xsl:text>
+               <xsl:apply-templates select="." mode="detect"/>
+               <xsl:text>}</xsl:text>
+        </xsl:template>
+        <xsl:template match="*" mode="detect">
+               <xsl:choose>
+                       <xsl:when test="name(preceding-sibling::*[1]) = name(current()) and name(following-sibling::*[1]) != name(current())">
+                               <xsl:apply-templates select="." mode="obj-content"/>
+                               <xsl:text>]</xsl:text>
+                               <xsl:if test="count(following-sibling::*[name() != name(current())]) &gt; 0">, </xsl:if>
+                       </xsl:when>
+                       <xsl:when test="name(preceding-sibling::*[1]) = name(current())">
+                               <xsl:apply-templates select="." mode="obj-content"/>
+                               <xsl:if test="name(following-sibling::*) = name(current())">, </xsl:if>
+                       </xsl:when>
+                       <xsl:when test="following-sibling::*[1][name() = name(current())]">
+                               <xsl:text>"</xsl:text>
+                               <xsl:value-of select="name()"/>
+                               <xsl:text>" : [</xsl:text>
+                               <xsl:apply-templates select="." mode="obj-content"/>
+                               <xsl:text>, </xsl:text>
+                       </xsl:when>
+                       <xsl:when test="count(./child::*) > 0 or count(@*) > 0">
+                               <xsl:text>"</xsl:text>
+                               <xsl:value-of select="name()"/>" : <xsl:apply-templates select="." mode="obj-content"/>
+                               <xsl:if test="count(following-sibling::*) &gt; 0">, </xsl:if>
+                       </xsl:when>
+                       <xsl:when test="count(./child::*) = 0">
+                               <xsl:text>"</xsl:text>
+                               <xsl:value-of select="name()"/>" : "<xsl:apply-templates select="."/>
+                               <xsl:text>"</xsl:text>
+                               <xsl:if test="count(following-sibling::*) &gt; 0">, </xsl:if>
+                       </xsl:when>
+               </xsl:choose>
+        </xsl:template>
+        <xsl:template match="*" mode="obj-content">
+               <xsl:text>{</xsl:text>
+               <xsl:apply-templates select="@*" mode="attr"/>
+               <xsl:if test="count(@*) &gt; 0 and (count(child::*) &gt; 0 or text())">, </xsl:if>
+               <xsl:apply-templates select="./*" mode="detect"/>
+               <xsl:if test="count(child::*) = 0 and text() and not(@*)">
+                       <xsl:text>"</xsl:text>
+                       <xsl:value-of select="name()"/>" : "<xsl:value-of select="text()"/>
+                       <xsl:text>"</xsl:text>
+               </xsl:if>
+               <xsl:if test="count(child::*) = 0 and text() and @*">
+                       <xsl:text>"text" : "</xsl:text>
+                       <xsl:value-of select="text()"/>
+                       <xsl:text>"</xsl:text>
+               </xsl:if>
+               <xsl:text>}</xsl:text>
+               <xsl:if test="position() &lt; last()">, </xsl:if>
+        </xsl:template>
+        <xsl:template match="@*" mode="attr">
+               <xsl:text>"</xsl:text>
+               <xsl:value-of select="name()"/>" : "<xsl:value-of select="."/>
+               <xsl:text>"</xsl:text>
+               <xsl:if test="position() &lt; last()">,</xsl:if>
+        </xsl:template>
+        <xsl:template match="node/@TEXT | text()" name="removeBreaks">
+               <xsl:param name="pText" select="normalize-space(.)"/>
+               <xsl:choose>
+                       <xsl:when test="not(contains($pText, '&#xA;'))">
+                               <xsl:copy-of select="$pText"/>
+                       </xsl:when>
+                       <xsl:otherwise>
+                               <xsl:value-of select="concat(substring-before($pText, '&#xD;&#xA;'), ' ')"/>
+                               <xsl:call-template name="removeBreaks">
+                                      <xsl:with-param name="pText" select="substring-after($pText, '&#xD;&#xA;')"/>
+                               </xsl:call-template>
+                       </xsl:otherwise>
+               </xsl:choose>
+        </xsl:template>
+</xsl:stylesheet>
+
+
+
+
+--------------------------------------------------------------------------------------
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	**************************************************************************************************
+	|
+	|*** file: serializeSearchContent.xsl
+	|*** Description: take the name/value pairs from the HTTP Get request for the ContentSearchSOAP operation and 
+	|    serialize them to be passed to the COntentSearchSOAP HTTP Post processing rule.
+	|    These parameters may change according to necessary modifications to the ContentSearchSOAP operation.
+	|
+	|
+	|*** Input - name/value pairs: Name1, Value1, Oper1, Name2, Value2, Oper2, Name3, Value3, Oper3, SortBy, LogicalOp, Folder, DocType, ReturnDoc, User
+	|
+	|
+	|*** Output: serialized string consisting of the name/value pairs listed in the Input.
+	| 
+	|***************************************************************************************************
+-->
+<!--   -->
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp"
+	exclude-result-prefixes="dp">
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
+	<xsl:variable name="oper1" select="/request/args/arg[@name='Oper1']"/>
+		<xsl:variable name="dpServer" 
+		select="string(document('local:///identityDocument.xml')/ecm/services/dpserver)"/>
+	<xsl:variable name="ecmServerURI"
+		select="string(document('local:///identityDocument.xml')/ecm/services/ecmserviceURI)"/>
+	<xsl:variable name="ecmServerService"
+		select="string(document('local:///identityDocument.xml')/ecm/services/contentsearch/searchURI)"/>
+	<xsl:template match="/">
+		<xsl:variable name="PostData">
+			<xsl:if test="/request/args/arg[@name='searchCriteria'] != ''">
+				<xsl:value-of select="'searchCriteria'"/>
+				<xsl:text disable-output-escaping="yes">=</xsl:text>
+				<xsl:value-of select="/request/args/arg[@name='searchCriteria']"/>
+				<xsl:text disable-output-escaping="yes">&amp;</xsl:text>
+			</xsl:if>		
+			<xsl:if test="/request/args/arg[@name='SortBy'] != ''">	
+			<xsl:value-of select="'SortBy'"/>
+			<xsl:text disable-output-escaping="yes">=</xsl:text>
+			<xsl:value-of select="/request/args/arg[@name='SortBy']"/>
+			<xsl:text disable-output-escaping="yes">&amp;</xsl:text>	
+			</xsl:if>
+			<xsl:if test="/request/args/arg[@name='Folder'] != ''">		
+			<xsl:value-of select="'Folder'"/>
+			<xsl:text disable-output-escaping="yes">=</xsl:text>
+			<xsl:value-of select="/request/args/arg[@name='Folder']"/>
+			<xsl:text disable-output-escaping="yes">&amp;</xsl:text>
+			</xsl:if>
+			<xsl:if test="/request/args/arg[@name='DocType'] != ''">
+			<xsl:value-of select="'DocType'"/>
+			<xsl:text disable-output-escaping="yes">=</xsl:text>
+			<xsl:value-of select="/request/args/arg[@name='DocType']"/>
+			<xsl:text disable-output-escaping="yes">&amp;</xsl:text>
+			</xsl:if>			
+			<xsl:value-of select="'ReturnDoc'"/>
+			<xsl:text disable-output-escaping="yes">=</xsl:text>
+			<xsl:value-of select="/request/args/arg[@name='ReturnDoc']"/>
+			<xsl:text disable-output-escaping="yes">&amp;</xsl:text>
+			<xsl:value-of select="'ivHeader'"/>
+			<xsl:text disable-output-escaping="yes">=</xsl:text>
+			<xsl:value-of select="dp:http-request-header('iv-user')"/>
+		</xsl:variable>
+		<!-- Set a variable for the full URI of the first attachment, which will be fetched.
+			The fetch action will use the Source of var://context/INPUT/attachURL,
+			which will in turn find the "attachment://..." URL -->
+		<xsl:variable name="serializedPostData">
+			<dp:serialize select="$PostData" omit-xml-decl="yes"/>
+		</xsl:variable>
+		<dp:set-variable name="'var://context/INPUT/PostData'" value="$serializedPostData"/>
+		<xsl:message dp:priority="info"> *** Post Data - <xsl:value-of
+				select="$serializedPostData"/>
+		</xsl:message>
+				<!-- Set a variable for the url to ultimately post to -->
+		<dp:set-variable name="'var://context/INPUT/routing-url'" value="concat($dpServer,$ecmServerURI,$ecmServerService)"/>
+		<xsl:value-of select="$PostData"/>
+	</xsl:template>
+</xsl:stylesheet>
+
+
+-------------------------------------------------------------------------------------------------
+
+
+
+
+
+XACML transformations:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:dp="http://www.datapower.com/extensions"
+	xmlns:dpxacml="urn:ibm:names:datapower:xacml:2.0"
+	extension-element-prefixes="dp" exclude-result-prefixes="dp dpxacml"
+	version="1.0">
+	<xsl:include href="store:///utilities.xsl" />
+	<xsl:include href="store:///dp/aaa-xacml-context.xsl" />
+	<xsl:template match="/">
+		<Request xmlns="urn:oasis:names:tc:xacml:2.0:context:schema:os"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="urn:oasis:names:tc:xacml:2.0:context:schema:os http://docs.oasis-open.org/access_control-xacml-2.0-context-schema-os.xsd">
+			<Subject>
+				<xsl:copy-of select="//*[local-name()='Subject']/*" />
+				</Subject>
+			<Resource>		
+				<xsl:copy-of select="//*[local-name()='Resource']/*" />
+			</Resource>
+			<Action>
+				<xsl:copy-of select="//*[local-name()='Action']/*" />
+			</Action>
+			<Environment />
+		</Request>
+	</xsl:template>
+</xsl:stylesheet>
+
+
+------------------------------------------------------------------------------------------
+
+
+THIS DOES A BIND AND SEARCH TO A SUN LDAP SERVER LOAD BALANCER GROUP AND BRINGS BACK A LIST OF GROUPS A CERTAIN USERID IS A MEMBER OF:
+
+
+<?xml version="1.0" encoding="utf-8" ?> 
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dp="http://www.datapower.com/extensions" exclude-result-prefixes="dp">
+<xsl:output method="xml" /> 
+<xsl:template match="/">
+ 
+<xsl:variable name="userid" select="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='VKBIELD1Operation']/*[local-name()='requestResponse']/*[local-name()='requestMessage']/*[local-name()='LDAPInfoRequest']/*[local-name()='userPINNumner']/text()"/>
+ 
+<xsl:choose>
+<xsl:when test="$userid">
+<xsl:variable name="groupmatch" select="dp:ldap-search('','','uid=pm_financial_services,ou=People,o=Applications,o=Intranet','TripABind123',concat('uid=',$userid,',ou=People,o=Liberty,o=Intranet'),'memberOf','(objectClass=*)','sub','','LDAP_LB_Group')" />
+<groups>
+<user_info>
+<xsl:value-of select="$userid"/>
+</user_info>
+<xsl:copy-of select="$groupmatch"/>
+</groups>
+</xsl:when>
+</xsl:choose>
+ 
+</xsl:template>
+</xsl:stylesheet>
+
+
+------------------------------------------
+
+THIS IS A POLISHED VERSION THAT LISTS OUT 70 GROUPS TO PLACE LDAP INFORMATION WITHIN THEM:
+
+<?xml version="1.0" encoding="utf-8" ?> 
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:dp="http://www.datapower.com/extensions" exclude-result-prefixes="dp" >
+<xsl:output method="xml" /> 
+<xsl:template match="/">
+ 
+<xsl:variable name="LDAP_data" select="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='VKBIELD1Operation']/*[local-name()='LDAPInfoRequest']/text()"/>
+ 
+<xsl:variable name="userid" select="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='VKBIELD1Operation']/*[local-name()='LDAPInfoRequest']/*[local-name()='userPINNumber']/text()"/>
+ 
+<xsl:variable name="groupmatch" select="dp:ldap-search('','','uid=pm_financial_services,ou=People,o=Applications,o=Intranet','TripABind123',concat('uid=',$userid,',ou=People,o=Liberty,o=Intranet'),'memberOf','(objectClass=*)','sub','','LDAP_LB_Group')" />
+ 
+<xsl:variable name="each_group1" select="$groupmatch/LDAP-search-results/result/attribute-value[@name='memberOf'][1]"/>
+<xsl:variable name="each_group2" select="$groupmatch/LDAP-search-results/result/attribute-value[@name='memberOf'][2]"/>
+<xsl:variable name="each_group3" select="$groupmatch/LDAP-search-results/result/attribute-value[@name='memberOf'][3]"/>
+
+ 
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:vkb="http://www.VKBIELD1.BKBICLD1.Response.com">
+<soapenv:Header/>
+   <soapenv:Body>
+      <vkb:VKBIELD1OperationResponse>
+         <vkb:LDAPInfoResponse>
+            <vkb:responseCode>00</vkb:responseCode>
+            <vkb:responseMessageDescription>Success</vkb:responseMessageDescription>
+            <vkb:userPINNumber><xsl:value-of select="$userid"/></vkb:userPINNumber>
+ 
+<vkb:ldapGroupList>
+<vkb:ldapGroupName><xsl:value-of select="substring-before(substring-after($each_group1,'cn='),',')"/></vkb:ldapGroupName>
+</vkb:ldapGroupList>
+ 
+<vkb:ldapGroupList>
+<vkb:ldapGroupName><xsl:value-of select="substring-before(substring-after($each_group2,'cn='),',')"/></vkb:ldapGroupName>
+</vkb:ldapGroupList>
+ 
+<vkb:ldapGroupList>
+<vkb:ldapGroupName><xsl:value-of select="substring-before(substring-after($each_group3,'cn='),',')"/></vkb:ldapGroupName>
+</vkb:ldapGroupList>
+
+ 
+           </vkb:LDAPInfoResponse>
+       </vkb:VKBIELD1OperationResponse>
+   </soapenv:Body>
+</soapenv:Envelope>
+ 
+</xsl:template>
+</xsl:stylesheet>
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+AU.xsl (from Oxygen project CONVERSIONS):
+Search LDAP server for proper authentications depending on DN and email address domain:
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions" exclude-result-prefixes="dp">
+    <xsl:output method="xml"/>
+
+    <xsl:template match="/">
+        <!-- Take the username password and domain from the incoming nodeset -->
+        <xsl:variable name="username" select="/identity/entry[@type='custom']/username/text()"/>
+        <xsl:variable name="password" select="/identity/entry[@type='custom']/password/text()"/>
+        <xsl:variable name="domain" select="substring-after($username,'@')"/>
+        <xsl:choose>
+            <xsl:when test="$domain=('example.com' or 'somewhere.com')">
+                <xsl:variable name="SearchFilter"
+                    select="concat('(&amp;(objectClass=ePerson)(emailAddress=', $username,'))')"/>
+                <!-- make a SUB search for our email address to find the DN -->
+                <xsl:variable name="userid"
+                    select="dp:ldap-search('ldapserver','389','','', concat('o=',$domain),'dn',$SearchFilter,'SUB','','')"/>
+                <!-- if the search returned a distinguished name… -->
+                <xsl:if test="$userid/LDAP-search-results/result/DN/text()">
+                    <!-- …then try and bind as that distinguished name -->
+                    <xsl:if
+                        test="dp:ldap-authen( $userid/LDAP-search-results/result/DN/text(), $password,'ldapserver:389')">
+                        <!-- output XML if successful -->
+                        <authenticated>yes</authenticated>
+                    </xsl:if>
+                </xsl:if>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- OUTPUT NOTHING - AU fails -->
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+</xsl:stylesheet>
+
+-------------------------------------------------------------------------------------------------
+
+
+
+CustomAuth.xsl (from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet extension-element-prefixes="dp" version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:SOAP12="http://www.w3.org/2003/05/soap-envelope"
+	xmlns:dp="http://www.datapower.com/extensions">
+	<xsl:template match="/">
+		<xsl:variable name="all">
+			<xsl:copy-of select="/"/>
+		</xsl:variable>
+		<xsl:variable name="user" select="/identity/entry/username"/>
+		<xsl:variable name="password" select="/identity/entry/password"/>
+		<xsl:variable name="url"
+			>http://10.0.16.112:9083/AIGAuthServiceWeb/sca/AIGSecurityServiceExport1</xsl:variable>
+		<xsl:variable name="message">
+			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+				<SOAP-ENV:Body>
+					<m:userAuthentication xmlns:m="http://www.aig.com/service/security">
+						<input1>
+							<Username>
+								<xsl:value-of select="$user"/>
+							</Username>
+							<Password>
+								<xsl:value-of select="$password"/>
+							</Password>
+						</input1>
+					</m:userAuthentication>
+				</SOAP-ENV:Body>
+			</SOAP-ENV:Envelope>
+		</xsl:variable>
+		<xsl:variable name="result" select="dp:soap-call( $url, $message)"/>
+		<xsl:choose>
+			<xsl:when
+				test="$result/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='userAuthenticationResponse']/*[local-name()='output1']/*[local-name()='UID']">
+				<xsl:copy-of
+					select="$result/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='userAuthenticationResponse']/*[local-name()='output1']/*[local-name()='UID']"
+				/>
+			</xsl:when>
+		</xsl:choose>
+	</xsl:template>
+</xsl:stylesheet>
+
+
+------------------------------------------------------------------------------
+
+
+AAA_MR_Custom.xslt (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp"
+    exclude-result-prefixes="dp" version="1.0">
+    <xsl:output method="xml"/>
+    <xsl:template match="/">
+        <!-- take the url and operation name from the ER output -->
+        <xsl:variable name="url" select="resource/item[@type='original-url'][1]/text()"/>
+        <xsl:variable name="opname" select="resource/item[@type='request-opname'][1]/text()"/>
+        <xsl:variable name="resource" select="concat($url,'/',$opname,)"/>
+        <resource>
+            <item type="custom">
+                <xsl:value-of select="$resource"/>
+            </item>
+        </resource>
+    </xsl:template>
+</xsl:stylesheet>
+
+-----------------------------------------------------------------------------
+
+
+
+
+AAA_MC_Custom.xslt (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions"
+    xmlns:fn="http://www.w3.org/2005/02/xpath-functions" xmlns:str="http://exslt.org/strings"
+    extension-element-prefixes="dp" exclude-result-prefixes="dp" version="1.0">
+    <xsl:output method="xml"/>
+    <xsl:template match="/">
+        <xsl:variable name="originalDN"
+            select="/credentials/entry[@type='validate-signer'] /CertificateDetails/Subject/text()"/>
+        <xsl:variable name="splitDN">
+            <xsl:copy-of select="str:split($originalDN,'/')"/>
+        </xsl:variable>
+        <xsl:variable name="newSplitDN">
+            <xsl:for-each select="$splitDN/token">
+                <xsl:sort order="descending" data-type="number" select="position()"/>
+                <xsl:variable name="this" select="normalize-space(.)"/>
+                <xsl:value-of select="concat(',',$this)"/>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="newDN" select="substring-after($newSplitDN,',')"/>
+        <entry type="custom">
+            <dn>
+                <xsl:value-of select="$newDN"/>
+            </dn>
+        </entry>
+    </xsl:template>
+</xsl:stylesheet>
+
+-------------------------------------------------------------------------------
+
+
+
+
+AAA_IE_CustomeRequest.xml (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0"?>
+<getAmount>
+    <authentication>
+        <username>alice</username>
+        <password>mysecret</password>
+    </authentication>
+    <data>
+        <values/>
+    </data>
+</getAmount>
+
+---------------------------------------------------------------------------------------
+
+
+
+AAA_EI_Custom.xslt (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions" exclude-result-prefixes="dp">
+    <xsl:output method="xml"/>
+    <xsl:template match="/">
+        <xsl:variable name="username" select="/*/authentication/username/text()"/>
+        <xsl:variable name="password" select="/*/authentication/password/text()"/>
+        <xsl:variable name="domain" select="dp:request-header('AuthDomain')"/>
+        <username>
+            <xsl:value-of select="concat($username,'@',$domain)"/>
+        </username>
+        <password sanitize="true">
+            <xsl:value-of select="$password"/>
+        </password>
+    </xsl:template>
+</xsl:stylesheet>
+
+--------------------------------------------------------------------------
+
+
+
+AAA Custom_AU_Request.xslt (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp"
+    exclude-result-prefixes="dp" version="1.0">
+    <xsl:output method="xml"/>
+    <xsl:template match="/">
+
+        <xsl:variable name="perms" select="document('local:///AZresources.xml')"/>
+        <xsl:variable name="resource" select="/container/mapped-resource/resource/item/text()"/>
+        <xsl:variable name="DN"
+            select="/container/mapped-credentials/ entry[@type='custom']/authenticated/ entry[@type='ldap']/text()"/>
+        <xsl:variable name="groups"
+            select="dp:ldap-search( 'ldapserver','389','','',$DN,'ibm-allGroups','', 'BASE','','')"/>
+        <xsl:for-each
+            select="$groups/LDAP-search-results/ result/attribute-value[@name='ibm-allGroups']">
+            <xsl:variable name="group" select="."/>
+            <xsl:for-each select="$perms/RESOURCES/ RESOURCE[URL=$resource]/GROUP">
+                <xsl:if test=".=$group">
+                    <approved/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:template>
+</xsl:stylesheet>
+
+---------------------------------------------------------------------
+
+
+
+Custom_Authenticate_Cardinal.xslt (taken from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet extension-element-prefixes="dp" version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:SOAP12="http://www.w3.org/2003/05/soap-envelope"
+	xmlns:q0="http://impl.wsdltojavav1.order.process.business.webordering.abc.com"
+	xmlns:dp="http://www.datapower.com/extensions">
+	<xsl:template match="/">
+		<xsl:variable name="all">
+			<xsl:copy-of select="/"/>
+		</xsl:variable>
+		<xsl:variable name="user" select="/identity/entry/username"/>
+		<xsl:variable name="password" select="/identity/entry/password"/>
+		<xsl:variable name="url"
+			>http://wddub00wasd01.cardinalhealth.net:7362/AuthenticationService/services/AuthenticationService</xsl:variable>
+		<xsl:variable name="message">
+			<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+				xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+				xmlns:web="http://webservice.authentication.services.abc.com">
+				<soapenv:Header/>
+				<soapenv:Body>
+					<web:authenticateUser
+						soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+						<userCredentialsVO xsi:type="user:UserCredentialsVO"
+							xmlns:user="http://vo.wsdltojavav1.security.process.business.webordering.abc.com/UserCredentials">
+							<userId xsi:type="xsd:string">
+								<xsl:value-of select="$user"/>
+							</userId>
+							<password xsi:type="xsd:string">
+								<xsl:value-of select="$password"/>
+							</password>
+						</userCredentialsVO>
+					</web:authenticateUser>
+				</soapenv:Body>
+			</soapenv:Envelope>
+		</xsl:variable>
+		<xsl:variable name="result" select="dp:soap-call( $url, $message)"/>
+		<xsl:choose>
+			<xsl:when
+				test="$result/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='authenticateUserResponse']/*[local-name()='authenticateUserReturn']/@href">
+				<xsl:value-of select="$user"/>
+			</xsl:when>
+		</xsl:choose>
+	</xsl:template>
+</xsl:stylesheet>
+
+-------------------------------------------------------------------------------------------------------
+
+
+
+Custom_Authorize_Cardinal.xslt (from Oxygen project CONVERSIONS):
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet extension-element-prefixes="dp" version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:SOAP12="http://www.w3.org/2003/05/soap-envelope"
+	xmlns:q0="http://impl.wsdltojavav1.security.process.business.webordering.abc.com"
+	xmlns:dp="http://www.datapower.com/extensions">
+	<xsl:template match="/">
+		<xsl:variable name="all">
+			<xsl:copy-of select="/"/>
+		</xsl:variable>
+		<xsl:message>
+			<xsl:copy-of select="$all"/>
+		</xsl:message>
+		<xsl:choose>
+			<xsl:when test="/container/mapped-credentials/@au-success ='true'">
+				<xsl:variable name="customerId"
+					select="/container/mapped-resource/resource/item/*[local-name()='customerId']"/>
+				<xsl:variable name="user" select="/container/identity/entry/username"/>
+				<xsl:variable name="password" select="/container/identity/entry/password"/>
+				<!--<xsl:variable name="url">http://10.208.122.169:8080/UserAuthorizationWeb/services/AuthorizationService</xsl:variable>-->
+				<xsl:variable name="url"
+					>http://wddub00wasd01.cardinalhealth.net:7362/UserAuthorizationService/services/AuthorizationService</xsl:variable>
+				<xsl:variable name="message">
+					<!--<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:impl="http://impl.wsdltojavav1.security.process.business.webordering.abc.com">-->
+					<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+						xmlns:aut="http://vo.wsdltojavav1.security.process.business.webordering.abc.com/AuthorizationRequest">
+						<soapenv:Header/>
+						<soapenv:Body>
+							<aut:checkUserAccountAuthorizationRequest>
+								<accountAuthReqVO>
+									<userId>
+										<xsl:value-of select="$user"/>
+									</userId>
+									<applicationId>NUCLEAR_PHARMACY_ORDERING</applicationId>
+									<accountId>
+										<xsl:value-of select="$customerId"/>
+									</accountId>
+								</accountAuthReqVO>
+							</aut:checkUserAccountAuthorizationRequest>
+						</soapenv:Body>
+					</soapenv:Envelope>
+				</xsl:variable>
+				<xsl:variable name="httpHeaders">
+					<header name="SOAPAction">checkUserAccountAuthorization</header>
+					<header name="Operation">checkUserAccountAuthorization</header>
+				</xsl:variable>
+				<xsl:variable name="result"
+					select="dp:soap-call( $url, $message,'','','checkUserAccountAuthorization')"/>
+				<!--<xsl:variable name="result" select="dp:soap-call( $url, $message)"/>-->
+				<xsl:choose>
+					<xsl:when
+						test="$result/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='checkUserAccountAuthorizationResponse']/*[local-name()='checkUserAccountAuthorizationReturn']/*[local-name()='isAuthorized'] = '1'">
+						<approved/>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:when>
+			<xsl:otherwise>
+				<denied/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+</xsl:stylesheet>
+
+-----------------------------------------------------------------------------------------------------------------
+
+
+ENCRYPT AND DECRYPT AND STORE PASSWORD AND USER DATA:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp"
+    exclude-result-prefixes="dp">
+
+    <xsl:template match="/">
+
+        <xsl:variable name="algorithm" select="'http://www.w3.org/2001/04/xmlenc#tripledes-cbc'"/>
+
+        <xsl:variable name="sym-key-str" select="'name:sharedsecretdes3'"/>
+        <!-- sharedsecretdes3 should be the name of a Crypto Shared Secret Key object containing a 3des symmetric key -->
+        <xsl:message dp:priority="notice">
+            <xsl:value-of select="concat('sym-key: ', $sym-key-str)"/>
+        </xsl:message>
+
+
+        <!-- Encrypt/Decrypt XML note -->
+        <xsl:variable name="node">
+            <root>
+                <body>some text</body>
+            </root>
+        </xsl:variable>
+        <xsl:message dp:priority="notice">node: <xsl:copy-of select="$node"/></xsl:message>
+
+        <!-- Encrypt -->
+        <xsl:variable name="ciphernode">
+            <xsl:value-of select="dp:encrypt-data($algorithm, $sym-key-str, $node)"/>
+        </xsl:variable>
+        <xsl:message dp:priority="notice">ciphernode: <xsl:copy-of select="$ciphernode"
+            /></xsl:message>
+
+        <!-- Decrypt -->
+        <xsl:variable name="clearnode">
+            <xsl:value-of select="dp:decrypt-data($algorithm, $sym-key-str, $ciphernode)"/>
+        </xsl:variable>
+        <xsl:message dp:priority="notice">clearnode: <xsl:copy-of select="$clearnode"
+            /></xsl:message>
+
+    </xsl:template>
+</xsl:stylesheet>
+
+
+---------------------------------------------------------------------------------------
+
+
+EXAMPLE OF <xsl:message> in a plain way:
+
+
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:template match="/">
+  <html>
+  <body>
+  <xsl:for-each select="catalog/cd">
+    <p>Title: <xsl:value-of select="title"/><br />
+    Artist:
+    <xsl:if test="artist=''">
+      <xsl:message terminate="yes">
+        Error: Artist is an empty string!
+      </xsl:message>
+    </xsl:if>
+    <xsl:value-of select="artist"/>
+    </p>
+  </xsl:for-each>
+  </body>
+  </html>
+</xsl:template>
+
+</xsl:stylesheet>
+
+--------------------------------------------------------------------------------
+
+
+USES URL-IN VARIABLE (LIKE FROM A BROWSER INPUT WINDOW) TO ROUTE:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:dp="http://www.datapower.com/extensions"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
+        xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings"
+        xmlns:mgmt="http://www.datapower.com/schemas/management" extension-element-prefixes="dp" exclude-result-prefixes="dp xs">
+ 
+<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+ 
+<xsl:template match="/">
+ 
+<xsl:variable name="URLin" select="dp:variable('var://service/URL-in')"/>
+ 
+<xsl:if test="contains($URLin, 'DocManager')">
+<dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/URI'" value="'/PmInternetAccountServiceModuleWeb/ModuleContextExport/getBuildNumber'"/>
+</xsl:if>
+ 
+<xsl:if test="contains($URLin, 'AddressBook')">
+<dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/URI'" value="'/restservlet/restapi/helloworld'"/>
+</xsl:if>
+ 
+<xsl:if test="contains($URLin, 'Addy')">
+<dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/URI'" value="'/AddressBook'"/>
+</xsl:if>
+ 
+<xsl:if test="contains($URLin, 'Doccy')">
+<dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/URI'" value="'/DocReader'"/>
+</xsl:if>
+ 
+</xsl:template>
+ 
+</xsl:stylesheet>
+
+
+
+
+
+IF YOU EVER RUN INTO SOME SITUATION USING the dp:set-variable option with not a nodeset, but the value WITHIN the node, this below fixes it:
+NOTICE THE "string" call prior to just calling the XPATH !!!!!
+
+
+<xsl:when test="//*[local-name(.)='DivisionID'] != ''">
+  <dp:set-variable name="'var://context/WSM/identity/username'" value="string(//*[local-name(.)='DivisionID']/text())" />
+</xsl:when>
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+
+I am using this XSL pasted below to increment Message counter 'mcm_noContent' - My debug variables all show that the code is hitting this statement:
+<dp:increment-integer name="'/monitor-count/mcm_noContent'"/>
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dp="http://www.datapower.com/extensions" xmlns:scmplus="http://www.vzw.com/namespaces/scmplus" extension-element-prefixes="dp" exclude-result-prefixes="dp scmplus" version="1.0">
+
+<xsl:template match="/">
+<xsl:apply-templates select="node()|@*"/>
+</xsl:template>
+
+<xsl:template match="node()|@*">
+<xsl:copy>
+<xsl:apply-templates select="@*|node()"/>
+</xsl:copy>
+</xsl:template>
+
+<xsl:template match="scmplus:GroupTotalCount">
+<xsl:variable name="TotalCount">
+<xsl:value-of select="."/>
+</xsl:variable>
+<dp:set-variable name="'var://context/DEBUG/TotalCount'" value="string($TotalCount)"/>
+<xsl:if test="$TotalCount = 0" >
+<!-- Increment Zero content message counter -->
+<dp:set-variable name="'var://context/DEBUG/MCM'" value="'mcm_noContent'"/>
+<dp:increment-integer name="'/monitor-count/mcm_noContent'"/>
+</xsl:if>
+<xsl:copy>
+<xsl:apply-templates select="@*|node()"/>
+</xsl:copy>
+</xsl:template>
+</xsl:stylesheet>
+
+
+============================================
+
+
+
+
+5. 10. 3. COUNT MATCHES:
+
+
+File: Data.xml 
+
+<?xml version="1.0"?>
+<results group="A">
+  <match>
+    <date>10-Jun-98</date>
+    <team score="2">team 1</team>
+    <team score="1">team 2</team>
+  </match>
+  <match>
+    <date>10-Jun-98</date>
+    <team score="2">team 3</team>
+    <team score="2">team 4</team>
+  </match>
+  <match>
+    <date>16-Jun-98</date>
+    <team score="1">team 2</team>
+    <team score="1">team 4</team>
+  </match>
+</results>
+
+
+
+File: Transform.xslt
+
+<?xml version="1.0"?>
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="2.0">
+
+  <xsl:variable name="teams" select="distinct-values(//team)" />
+  <xsl:variable name="matches" select="//match" />
+
+  <xsl:template match="results">
+    <league>
+      <xsl:for-each select="$teams">
+        <xsl:variable name="this" select="." />
+        <xsl:variable name="played"
+          select="count($matches[team=$this])" />
+        <xsl:variable name="won"
+          select="count($matches[team[.=$this]/@score &gt; team[.!=$this]/@score])" />
+        <xsl:variable name="lost"
+          select="count($matches[team[.=$this]/@score &lt; team[.!=$this]/@score])" />
+        <xsl:variable name="drawn"
+          select="count($matches[team[.=$this]/@score = team[.!=$this]/@score])" />
+        <xsl:variable name="for"
+          select="sum($matches/team[.=current()]/@score)" />
+        <xsl:variable name="against"
+          select="sum($matches[team=current()]/team/@score) - $for" />
+
+        <team name="{.}" played="{$played}" won="{$won}"
+          drawn="{$drawn}" lost="{$lost}" for="{$for}" against="{$against}" />
+
+      </xsl:for-each>
+    </league>
+  </xsl:template>
+
+</xsl:transform>
+
+
+
+Output:
+
+<?xml version="1.0" encoding="UTF-8"?><league>
+<team name="team 1" played="1" won="1" drawn="0" 
+lost="0" for="2" against="1"/><team name="team 2" 
+played="2" won="0" drawn="1" lost="1" for="2" against="3"/>
+<team name="team 3" played="1" won="0" drawn="1" lost="0" 
+for="2" against="2"/><team name="team 4" played="2" won="0" 
+drawn="2" lost="0" for="3" against="3"/></league>
+
+
+----------------------------------------------------------------------------------------
+
+
+
+USED WITHIN AN ERROR RULE THAT MATCHES ON WHATEVER WE WANT WITH A MATCH ACTION, TO PRESENT A FAULTSTRING TO THE CLIENT:
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dp="http://www.datapower.com/
+extensions" xmlns:dpconfig="http://www.datapower.com/param/config" extension-element-prefixes="dp" exclude-resultprefixes="
+dp dpconfig">
+<xsl:output method="xml"/>
+<xsl:template match="/">
+<!-- This is not <xsl:copy-of select="."/> which would forward the service-generated message.
+Instead, this file creates a customized error message -->
+<env:Envelope xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-
+1.0.xsd" xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+<env:Body>
+<env:Fault>
+<!-- get the DP transaction ID and include it for troubleshooting -->
+<xsl:variable name="err" select="dp:variable('var://service/transaction-id')"/>
+<env:faultcode>
+<xsl:value-of select="$err"/>
+</env:faultcode>
+<env:faultstring>Invalid submission. Please submit a valid request or notify youradministrator of this error
+and reference the faultcode number.</env:faultstring>
+</env:Fault>
+</env:Body>
+</env:Envelope>
+</xsl:template>
+</xsl:stylesheet>
+
+
+-----------------------------------------------------------------------------------------
+
+
+
+Creating a transformation that will strip specific elements is very simple. Below is a identity transform where I added one xsl:template that matches any element that uses the {http://schemas.xmlsoap.org/ws/2004/03/addressing} namespace. You can customize this based on what namespace (in other words WS-Addressing version) you are using.
+
+To strip elements, you simply match for them with a template and leave the template empty.
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:output method="xml"/>
+
+<!-- select any element that uses this WS-Addressing namespace -->
+<xsl:template match="*"></xsl:template>
+
+<!-- identity transform to copy all elements and nodes -->
+<xsl:template match="@*|node()">
+<xsl:copy>
+<xsl:apply-templates select="@*|node()"/>
+</xsl:copy>
+</xsl:template>
+
+</xsl:stylesheet>
+
+___________________________________________________________________________________
+
+
+INJECTS WS-* into SOAP HEADER:
+
+
+
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:date="http://exslt.org/dates-and-times"
+xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+xmlns:dp="http://www.datapower.com/extensions"
+xmlns:dpconfig="http://www.datapower.com/param/config"
+xmlns:dpfunc="http://www.datapower.com/extensions/functions"
+xmlns:func="http://exslt.org/functions"
+extension-element-prefixes="date dp dpfunc"
+exclude-result-prefixes="date dp dpconfig dpfunc wsse wsu">
+
+<dp:summary xmlns="">
+<operation>sign</operation>
+<description>
+Generate a UsernameToken WS-Security signature.
+</description>
+</dp:summary>
+
+<xsl:output indent="yes" method="xml" />
+
+<xsl:include href="store:///utilities.xsl" />
+
+<!-- Variables -->
+
+<xsl:variable
+name="wsseCreated"
+select="dpfunc:zulu-time()" />
+
+<xsl:variable
+name="wsseExpires"
+select="date:add($wsseCreated, 'P0DT0H5M0S')" />
+
+<xsl:variable
+name="wsseNonce"
+select="dp:encode(substring(dp:generate-uuid(), 1, 16), 'base-64')" />
+
+<xsl:param name="dpconfig:username" select="''"/>
+<xsl:variable
+name="wsseUsername"
+select="$dpconfig:username" />
+
+<xsl:param name="dpconfig:password" select="''"/>
+<xsl:variable
+name="wssePassword"
+select="$dpconfig:password" />
+
+<xsl:param name="dpconfig:key" select="''"/>
+<xsl:variable
+name="wsseKey"
+select="$dpconfig:key" />
+
+<xsl:variable
+name="wssePassword"
+select="dp:hash-base64('http://www.w3.org/2000/09/xmldsig#sha1', concat($wsseNonce,$wsseCreated, $wsseKey))" />
+-->
+
+<!-- End Variables -->
+
+<xsl:template match="/*[local-name()='Envelope']">
+<xsl:copy>
+  <xsl:copy-of select="@*" /> 
+  <xsl:copy-of select="namespace::*" /> 
+ <xsl:call-template name="create-security-header" /> 
+ <xsl:copy-of select="*[local-name()='Body']" /></xsl:copy>
+</xsl:template>
+	
+<!-- Add security header -->
+<xsl:template name="create-security-header">
+	<soapenv:Header>
+			<wsse:Security soapenv:mustUnderstand="1">
+				<wsu:Timestamp>
+					<wsu:Created>
+						<xsl:value-of select="$wsseCreated"/>
+					</wsu:Created>
+					<wsu:Expires>
+						<xsl:value-of select="$wsseExpires"/>					
+					</wsu:Expires>
+				</wsu:Timestamp>	
+				<wsse:UsernameToken>
+					<wsse:Username>
+						<xsl:value-of select="$wsseUsername"/>
+					</wsse:Username>
+					<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">
+						<xsl:value-of select="$wssePassword"/>
+					</wsse:Password>
+					<wsse:Nonce>
+						<xsl:value-of select="$wsseNonce"/>
+					</wsse:Nonce>
+					<wsu:Created>
+						<xsl:value-of select="$wsseCreated"/>
+					</wsu:Created>
+				</wsse:UsernameToken>
+			</wsse:Security>
+		</soapenv:Header>
+	</xsl:template>
+</xsl:stylesheet>
+
+
+--------------------------------------------------------------------------------
+
+I think this will get the url attach it to cid:foo
+
+
+<dp:url-open target="{concat('cid:',bin,'?Encoding=base64')}" resolve-mode="ignore" response="ignore" data-type="binary">
+<dp:url-open target="http://eservices-test.diligenz.com/docs" data-type="binary"/>
+</dp:url-open>
+
+Then to get the base64 data you can  (you may have to have these in different xslt’s one after the other):
+
+<xsl:variable name=”base64data”>
+<dp:url-open target="{concat(‘cid:bin’,'?Encode=base64')}" data-type="base64"/>
+</xsl:variable>
+
+
+--------------------------------------------------------------------------
+
+
+	   Re: question on Statistics variables
+Posted: Jul 11, 2008 11:31:18 AM   in response to: anboss in response to: anboss's post 	  	
+Click to report abuse... 	  	Click to reply to this thread 	Reply
+Hi
+
+
+
+<xsl:variable name="elapsedTime" select="dp:variable('var://service/time-elapsed')"/>
+
+this is the elapsed time for the service, i.e. policy and backend service completed
+
+<xsl:variable name="forwardedTime" select="dp:variable('var://service/time-forwarded')"/>
+
+The time the request was forwarded to the backend
+
+<xsl:variable name="response-completeTime" select="dp:variable('var://service/time-response-complete')"/>
+
+The time the response was recieved from the backend
+
+I'm not sure why the start time is not 0, it should be I believe
+
+Also, you'll see 0 in forward and response if the service is a loopback, or no backend request was made
+
+you can do your own time calculation in policy transformation steps like below if you are really interested
+
+set the start time
+
+<xsl:template match="/">
+
+<xsl:variable name="time" select="dp:time-value()"/>
+<dp:set-variable name="'var://context/time/start'" value="$time"/>
+
+</xsl:template>
+
+calc the delta somewhere else, (a later action in request or response rule
+
+<xsl:template match="/">
+
+<xsl:variable name="stopTime" select="dp:time-value()"/>
+<xsl:message><xsl:value-of select="concat('stopTime =', $stopTime)"/></xsl:message>
+
+<xsl:variable name="startTime" select="dp:variable('var://context/time/start')"/>
+<xsl:variable name="elapTime" select="number($stopTime)-number($startTime)"/>
+
+<xsl:message>
+<xsl:text>Elapsed Time=</xsl:text><xsl:value-of select="$elapTime"/><xsl:text> Milliseconds</xsl:text>
+</xsl:message>
+
+</xsl:template>
+
+
+
+John
+
+
+----------------------------------------------
+
+Taken from DP forum, on using TCP socket connections raw with dp:url-open:
+
+
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:dp="http://www.datapower.com/extensions"
+  extension-element-prefixes="dp"
+>
+  <xsl:output method="xml"/>
+    
+  <xsl:template match="/">
+    <xsl:variable name="request-xml">
+      <test>1</test>
+    </xsl:variable>
+ 
+    <xsl:variable name="response">
+      <dp:url-open target="tcp://9.152.4.11:8888" response="xml">
+        <xsl:copy-of select="$request-xml"/>
+      </dp:url-open>
+    </xsl:variable>
+ 
+    <xsl:copy-of select="$response"/>
+  </xsl:template>
+  
+</xsl:stylesheet>
+
+
+
+---------------------------------------------------------------------------------------------
+
+
+taken from DP forum, on extracting just the CN= value from a message - could be used for anything really:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" 
+		xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+		xmlns:dp="http://www.datapower.com/extensions" 
+		xmlns:regexp="http://exslt.org/regular-expressions" 
+		extension-element-prefixes="dp" exclude-result-prefixes="dp">
+ 
+	<xsl:template match="* | @*">
+		<xsl:copy>
+			<xsl:apply-templates select="@* | node()"/>
+		</xsl:copy>
+	</xsl:template>
+
+
+        <!-- the GetInfo element could be anything of course, or just do a match on "/" as usual if you can -->	
+	<xsl:template match="//*[local-name()='GetInfo']">					
+		<xsl:variable name="cert" select="dp:variable('var://context/transaction/encrypting-cert')"/>
+		<xsl:variable name="DN" select="dp:get-cert-subject($cert)"/>
+		<xsl:variable name="CN" select="substring-before(substring-after($DN, 'CN='), ',')" />
+		<!-- or you could do the same thing using Hermann's approach:
+		<xsl:variable name="CN" select="regexp:match($DN,'CN=([^ ,]*)','g')"> -->
+		<xsl:value-of select="$CN" />
+		<xsl:copy>
+			<xsl:apply-templates select="* | @*"/>
+		</xsl:copy>
+	</xsl:template>	
+	
+</xsl:stylesheet>
+
+
+
+------------------------------------------------------------------------------------
+
+LOGS A BUNCH OF STUFF and SENDS IT TO THE LOG OF CHOICE:
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
+	xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings"
+	xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp"
+	exclude-result-prefixes="dp">
+
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+
+	<xsl:template match="/">
+        
+        <root-node>
+        <xsl:copy-of select="."/>
+
+        <xsl:variable name="serviceReferenceId"
+            select="/*[local-name()='Envelope']/*[local-name()='Header']/*[local-name()='requestHeader']/*[local-name()='serviceReferenceId']"/>
+
+        <xsl:variable name="consumerName"
+            select="/*[local-name()='Envelope']/*[local-name()='Header']/*[local-name()='requestHeader']/*[local-name()='functionalContext']/*[local-name()='consumerName']"/>
+
+        <xsl:variable name="serviceName"
+            select="/*[local-name()='Envelope']/*[local-name()='Header']/*[local-name()='requestHeader']/*[local-name()='functionalContext']/*[local-name()='target']/*[local-name()='serviceName']"/>
+
+        <xsl:variable name="serviceOperation"
+            select="/*[local-name()='Envelope']/*[local-name()='Header']/*[local-name()='requestHeader']/*[local-name()='functionalContext']/*[local-name()='target']/*[local-name()='serviceOperation']"/>
+
+        <xsl:message>SERVICE REFERENCE ID: <xsl:value-of select="$serviceReferenceId"/></xsl:message>
+        <xsl:message>CONSUMER NAME: <xsl:value-of select="$consumerName"/></xsl:message>
+        <xsl:message>SERVICE NAME: <xsl:value-of select="$serviceName"/></xsl:message>
+        <xsl:message>SERVICE OPERATION: <xsl:value-of select="$serviceOperation"/></xsl:message>
+
+        <xsl:variable name="TIME-ELAPSED" select="dp:variable('var://service/time-elapsed')"/>
+        <xsl:variable name="TIME-RESPONSE-COMPLETE" select="dp:variable('var://service/time-response-complete')"/>
+        <xsl:variable name="INPUT-SIZE" select="dp:variable('var://service/input-size')"/>
+        <xsl:variable name="TIME-FORWARDED" select="dp:variable('var://service/time-forwarded')"/>
+        <xsl:variable name="TIME-STARTED" select="dp:variable('var://service/time-started')"/>
+
+        <xsl:message>TIME ELAPSED: <xsl:value-of select="$TIME-ELAPSED"/></xsl:message>
+        <xsl:message>TIME-RESPONSE-COMPLETE: <xsl:value-of select="$TIME-ELAPSED"/></xsl:message>
+        <xsl:message>INPUT-SIZE: <xsl:value-of select="$INPUT-SIZE"/></xsl:message>
+        <xsl:message>TIME-FORWARDED: <xsl:value-of select="$TIME-FORWARDED"/></xsl:message>
+        <xsl:message>TIME-STARTED: <xsl:value-of select="$TIME-STARTED"/></xsl:message>
+
+        <xsl:variable name="XSL_MESSAGES" select="dp:variable('var://local/_extension/messages')"/>
+
+        <dp:url-open target="{$XSL_MESSAGES}" response="ignore">
+        <xsl:copy-of select="$XSL_MESSAGES"/>
+        </dp:url-open>
+
+        <xsl:variable name="icap-response">
+        <dp:url-open http-headers="$icapHeaders" target="icap://1.2.3.4:1344" response="responsecode"/>
+        </xsl:variable> 
+
+        <xsl:variable name="backendURL" select="'dpmq://DPQM/?RequestQueue=DP.ERROR.1'"/>
+
+        <xsl:variable name="URLs">
+        <results mode="require-all" multiple-outputs="true">
+        <url input="context1">http://127.0.0.1:22223</url>
+        <url input="context2">http://127.0.0.1:22224</url>
+        <url input="context3">http://127.0.0.1:22225</url>
+        <url input="context4">http://127.0.0.1:22226</url>
+        </results>
+        </xsl:variable>
+        <dp:set-variable name="’var://context/results/remoteMany’" value="$URLs"/>
+
+        </root-node>
+
+
+
+
+-------------------------------------------------------------------------------------
+
+AUTO BACKUP:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:dp="http://www.datapower.com/extensions"
+	xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
+	xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings"
+        xmlns:mgmt="http://www.datapower.com/schemas/management" extension-element-prefixes="dp" exclude-result-prefixes="dp">
+
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+
+	<xsl:template match="/">
+
+<xsl:call-template name="putFile">
+            <xsl:with-param name="BackUpFile">
+                <!-- Perform a domain backup request call through XML Management Interface -->
+                <dp:url-open target="https://s-datapower-mgmt.silver.com:5550/service/mgmt/2004" response="responsecode">
+                    <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+                        <env:Body>
+                            <dp:request domain="DEV_ADI" xmlns:dp="http://www.datapower.com/schemas/management">
+                                <dp:do-backup format="ZIP">
+                                    <dp:user-comment>Some domain backups</dp:user-comment>
+                                    <!-- List of domains to backup -->
+                                    <dp:domain name="DEV_ADI"/>
+                                    <!-- <><><><><><><><>><><> -->
+                                </dp:do-backup>
+                            </dp:request>
+                        </env:Body>
+                    </env:Envelope>
+                </dp:url-open>
+            </xsl:with-param>
+        </xsl:call-template>
+
+</xsl:template>
+ 
+<!-- function putFile will decode the encoded binary64 backup of domains response and FTP it to a location -->
+<xsl:template name="putFile">
+   <xsl:param name="BackUpFile"/>
+        
+      <xsl:if test="$BackUpFile='' ">
+          <xsl:message dp:type="backup" dp:priority="alert">Backup request fails</xsl:message>
+          <dp:reject/>
+      </xsl:if>
+        
+      <!-- Extract the export content string -->
+      <xsl:variable name="encBackUpFile" select="string($BackUpFile//mgmt:file)"/>
+
+        <!-- Send it to an FTP Spot -->
+        <xsl:variable name="date" select="substring-before(date:date-time(),':')"/>
+        <xsl:variable name="fileDate" select="concat('DEV_ADI_', $date)"/>
+        <xsl:variable name="filename" select="concat($fileDate,'.zip')"/>
+        <xsl:variable name="ftp-put-url"
+            select="concat('ftp://readonly:readonly1234@192.168.204.25/datapower1/',$filename)"/>
+        <dp:url-open target="{$ftp-put-url}" response="responsecode" data-type="base64">
+            <xsl:value-of select="$encBackUpFile"/>
+        </dp:url-open>
+
+</xsl:template>
+</xsl:stylesheet>
+
+
+-----------------------------------------------------------------
+
+BUILD AN ADDRESS AND MESSAGE:
+
+
+<xsl:template match='/'>
+<xsl:variable name="devid" select="substring-before(dp:variable('var://service/local-service-address'), ':')"/>
+<xsl:variable name="TrnType" select="dp:variable('var://service/transaction-rule-type')"/>
+<xsl:variable name="xesTrans" select="substring-after(dp:variable('var://service/URL-out'), 'http://soadpdata:8080/axis/services/')"/>
+<xsl:variable name="cnbTrans" select="substring-after(dp:variable('var://service/URL-out'), 'http://soadpdata:8080/CNBServices/service/')"/>
+<xsl:variable name="svc" select="dp:variable('var://service/processor-name')"/>
+<xsl:variable name="tranid" select="dp:variable('var://service/transaction-id')"/>
+<xsl:variable name="DateTime" select="date:date-time()"/>
+<xsl:variable name="HourInDay" select="date:hour-in-day($DateTime)"/>
+<xsl:variable name="filename" select="concat('dpnfs://NFSSoaMount/',$HourInDay,'/','InvalidAuth','Rq',$devid,$svc,$tranid,'.xml')"/>
+<dp:set-variable name="'var://context/txn-info/nfs-file'" value="$filename"/>
+<xsl:if test="substring(normalize-space(/*/*/*/*/*),string-length(normalize-space(/*/*/*/*/*))-1,2) != 'pr'">
+<dp:url-open target="$filename">
+<xsl:copy-of select="$raw-xml" />
+</dp:url-open>
+<dp:reject/>
+</xsl:if>
+</xsl:template>
+
+
+
+---------------------------------------------------------------------
+
+
+
+<!--Specifies a target server that uses a nonsecure connection-->
+
+<xsl:template match="/">
+<xsl:choose>
+<xsl:when test="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='doGoogleSearch']">
+<dp:set-variable name="'var://context/mine/portno'" value="8041"/>
+</xsl:when>
+<xsl:when test="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='searchByCheck']">
+<dp:set-variable name="'var://context/mine/portno'"value="2078" />
+</xsl:when>
+<xsl:otherwise>
+<dp:set-variable name="'var://context/mine/portno'"value="80"/>
+</xsl:otherwise>
+</xsl:choose>
+<dp:xset-target host="dp:http-request-header('Target')"port="dp:variable('var://context/mine/portno')"ssl="false()"/>
+</xsl:template>
+
+
+
+------------------------------------------------------------------
+
+
+
+
+<!--Specifies a target server based on a select XPath match - using dp:set-target  vs.  dp:xset-target  -->
+
+<xsl:template match="/">
+<xsl:choose>
+<xsl:when test="/*[local-name()='Envelope']/*[localname()='Body']/*[local-name()='CheckRequestElement']">
+<dp:set-target>
+<host>10.10.36.11</host>
+<port>2068</port>
+</dp:set-target>
+</xsl:when>
+<xsl:when test="/*[local-name()='Envelope']/*[localname()='Body']/*[local-name()='request']">
+<dp:set-target>
+<host>10.10.36.11</host>
+<port>2064</port>
+</dp:set-target>
+</xsl:when>
+<xsl:otherwise>
+<dp:set-target>
+<host>10.10.36.11</host>
+<port>8080</port>
+</dp:set-target>
+</xsl:otherwise>
+</xsl:choose>
+</xsl:template>
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+<!--Specifies a target server with the URI based on a select XPath match - using the DataPower Service Variables-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:dp="http://www.datapower.com/extensions"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
+	xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings"
+        xmlns:mgmt="http://www.datapower.com/schemas/management" extension-element-prefixes="dp" exclude-result-prefixes="dp xs">
+
+<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+
+<xsl:template match="/">
+
+<xsl:choose>
+
+<xsl:when test="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='doGoogleSearch']">
+<dp:set-variable name="'var://service/routing-url'" value="'http://s-datapower-mgmt.silver.com:8041'"/>
+<dp:set-variable name="'var://service/URI'" value="'/search/beta2'"/>
+</xsl:when>
+
+<xsl:when test="/*[local-name()='Envelope']/*[local-name()='Body']/*[local-name()='locateProfile']">
+<!--<dp:set-variable name="'var://service/routing-url-sslprofile'" value="'forward_server_crypto_profile'"/>-->
+<dp:set-variable name="'var://service/routing-url'" value="'http://s-datapower-dev.silver.com:2078'"/>
+<dp:set-variable name="'var://service/URI'" value="'/eProxy/service/ProfileLocator_Router'"/>
+</xsl:when>
+
+<xsl:otherwise>
+<dp:set-target>
+<host>s-datapower-mgmt.silver.com</host>
+<port>80</port>
+</dp:set-target>
+</xsl:otherwise>
+</xsl:choose>
+</xsl:template>
+
+</xsl:stylesheet>
+
+
+
+-------------------------------------------------------------------------
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:dp="http://www.datapower.com/extensions"
+extension-element-prefixes="dp">
+
+<xsl:output encoding="utf-8" omit-xml-declaration="yes" />
+
+<xsl:template match="SOAP-ENV:Body/*">
+<dp:set-request-header name="'Content-Type'" value="'text/plain'"/>
+<dp:set-request-header name="'AnotherHeader'" value="'another value'"/>
+<dp:freeze-headers/>
+<xsl:text>my content</xsl:text>
+</xsl:template>
+
+</xsl:stylesheet>
+
+
+
+-------------------------------------------------------------------
+
+SOAP FAULT WRITTEN via FAULTCODE within XSL:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:dp="http://www.datapower.com/extensions"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
+	xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings"
+        xmlns:mgmt="http://www.datapower.com/schemas/management" extension-element-prefixes="dp" exclude-result-prefixes="dp xs">
+
+<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+
+<xsl:template match="/">
+
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+
+<env:Body>
+<env:Fault>
+
+<!-- get the DP transaction ID and include it for troubleshooting -->
+<xsl:variable name="err" select="dp:variable('var://service/transaction-id')"/>
+<env:faultcode>
+<xsl:value-of select="$err"/>
+</env:faultcode>
+
+<env:faultstring>Somebody is sending TOO MANY MESSAGES in too little time</env:faultstring></env:Fault>
+</env:Body>
+</env:Envelope>
+</xsl:template>
+</xsl:stylesheet>
+
+
+
+----------------------------------------------------------------------
+
+<!--converts responses or any soap or xml message to HTML - works well-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenv="http://www.w3.org/2001/12/soap-envelope" xmlns:date="http://exslt.org/dates-and-times" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp">
+
+<xsl:output method="html" version="1.0"/>
+
+  <xsl:template match="/">
+    <xsl:apply-templates select="*"/>
+  </xsl:template>
+  
+  <xsl:template match="/">
+    <html>
+      <body>
+        <h1>
+          <xsl:value-of select="."/>
+        </h1>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
+
+
+
+--------------------------------------------------------------
+
+
+SIMPLE CONVERT TO SOAP XSLT:
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes"/>
+	<xsl:template match="/">
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+			<SOAP-ENV:Body>
+				<xsl:copy-of select="."/>
+			</SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>
+	</xsl:template>
+</xsl:stylesheet>
+
+
+
+
+
+-----------------------------------------------------------
+
+
+
+XSLT FOR WRAPPING AND STRIPPING SOAP
+
+
+
+Posted: Oct 13, 2008 03:29:34 PM    in response to: shachargr's post         Reply  
+ 
+Wrapping the XML into a SOAP message should be pretty straight forward. 
+
+Quick example :
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:tns="http://www.example.org/tns" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope" xmlns:func="http://exslt.org/functions" xmlns:fn="http://www.w3.org/2005/02/xpath-functions">
+<xsl:output method="xml" omit-xml-declaration="no"/>
+<xsl:template match="/">
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">>
+<SOAP-ENV:Header>
+<wsse:Security>
+<wsse:UsernameToken>
+<wsse:Username>
+<xsl:value-of select="/myMessage/username"/>
+</wsse:Username>
+<wsse:Password>
+<xsl:value-of select="/myMessage/userCredentials"/>
+</wsse:Password>
+</wsse:UsernameToken>
+</wsse:Security>
+</SOAP-ENV:Header>
+<SOAP-ENV:Body>
+<xsl:value-of select="/myMessage/payload" disable-output-escaping="yes"/>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+</xsl:template>
+</xsl:stylesheet>
+
+
+
+----------------------------------------
+
+
+Sample assumes the entire body of the SOAP Body is contained within /myMessage/payload. You may need a more detailed mapping for your use case.
+
+
+Removing the SOAP Message should also be straightforward :
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:tns="http://www.example.org/tns" xmlns:SOAP-ENV="http://www.w3.org/2001/06/soap-envelope" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="iaa SOAP-ENV dp">
+<xsl:output method="xml" omit-xml-declaration="no"/>
+<xsl:strip-space elements="*"/>
+<xsl:template match="/">
+<XMLMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><xsl:value-of select="somePortionOfSOAP"/>
+<myChild>
+<!-- note var://context/originalHeader/myHeader was populated on the incoming SOAP request -->
+<xsl:copy-of select="dp:variable('var://context/originalHeader/myHeader')"/>
+</myChild>
+<payload>
+<xsl:text disable-output-escaping="yes"><![CDATA[</xsl:text>
+<xsl:copy-of select="/*/*/*"/>
+<xsl:text disable-output-escaping="yes">]]></xsl:text>
+</payload>
+</XMLMessage>
+</xsl:template>
+</xsl:stylesheet>
+
+
+
+Sample populates myChild with values obtained and stored from the request message, this is merely an example, and is not necessary. You should easily be able to map your XML request into the SOAP message depending on your use case.
+
+
+-----------------------------------------------------------------------------
+
+
+base64 encode the message or parts of it and put that in an element of <abc> - very flexible stylesheet
+
+
+<?xml version="1.0" encoding="UTF-8"?><xsl:stylesheet extension-element-prefixes="dp" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP12="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/extensions">
+
+<xsl:output method="xml"/>
+
+<xsl:template match="/">
+
+<xsl:variable name="test">
+<xsl:copy-of select="*"/>
+</xsl:variable>
+
+<xsl:variable name="MsgBlock">
+<dp:serialize select="$test" />
+</xsl:variable> 
+
+<abc>
+<xsl:value-of select="dp:encode($MsgBlock,'base-64')"/>
+</abc>
+
+</xsl:template>
+</xsl:stylesheet>
+
+
+--------------------------------------------------------------------
+
+
+Getting the byte array of base64 encodes:
+
+
+<xsl:template name="b64-byte-length">
+<xsl:param name="b64-str" select="''"/>
+<!-- Remove "=" characters from the Base64 string... -->
+<xsl:variable name="b64-char-str" select="translate($b64-str,'=','')"/>
+<!-- Calculate the length, in bits, of the remaining character string... -->
+<xsl:variable name="b64-padded-bit-length" select="string-length($b64-char-str) * 6"/>
+<!-- Drop the bit padding by calculating the greatest multiple of 8 that is less than the padded bit length... -->
+<xsl:variable name="b64-byte-length" select="($b64-padded-bit-length - ($b64-padded-bit-length mod 8)) div 8"/>
+<!-- Output this length... -->
+<xsl:value-of select="$b64-byte-length"/>
+</xsl:template>
+
+
+---------------------------------------------------------------
+
+
+<!-- build log message -->
+
+<xsl:variable name="log-message">
+<env:Envelope>
+<env:Body>
+<log-entry>
+<date>
+<xsl:value-of select="date:date()"/>
+</date>
+<time>
+<xsl:value-of select="date:time()"/>
+</time>
+<transaction>
+<xsl:value-of select="dp:variable('var://service/transaction-id')"/>
+</transaction>
+<type>
+<xsl:value-of select="$dpconfig:LogCategory"/>
+</type>
+<level>
+<xsl:value-of select="$dpconfig:LogPriority"/>
+</level>
+<message>
+<xsl:copy-of select="."/>
+</message>
+</log-entry>
+</env:Body>
+</env:Envelope>
+</xsl:variable>
+
+
+---------------------------------------------------------------------
+
+
+
+Re: XSLT question: How to set a var or param that can be used in xsl:template? 
+Posted: Mar 17, 2009 10:58:19 AM    in response to: jimcpl's post           Reply  
+ 
+You can define a xsl:param before any of the templates are defined. So you could have this:
+
+
+<xsl:param name="param1" select="'param1Value'" />
+<xsl:template match="/">
+........
+</xsl:template>
+
+And then define all of the templates you want. 
+
+If you are setting it in a template then you have to pass it to the templates that you are calling (if you are calling them) with something like:
+
+<xsl:call-template name="check_length">
+<xsl:with-param name="param1" select="$param1value" />
+</xsl:call-template>
+
+Be careful setting too many DataPower variables. Use xslt variables and params if you could. If you have to use a DataPower variable within the same stylesheet use a local variable and not context. 
+
+
+
+-----------------------------------------------------------------------
+
+AAA:
+
+
+Invoke the dp:auth-info() extension function as described on page 97 of the 3.7.2-Extensions-Common.pdf document. You probably want to invoke it like:
+<xsl:variable name="foo" select="dp:auth-info('ssl-client-subject')"/>
+
+Also, you really can't use any of the var://context/AAA-internal-debug/... variables as part of your processing logic. They are only created/populated when the device is operating at certain levels of debug (i.e. Default System Log at DEBUG, or Probe ON).
+
+
+--------------------------------------------------------------------------
+
+
+Catches Log entries and sends them to output - Identifies AAA Authentication Failure via DP context variable:
+
+
+<?xml version="1.0" encoding="UTF-8"?><xsl:stylesheet extension-element-prefixes="dp" exclude-result-prefixes="dp" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fn="http://www.w3.org/2005/02/xpath-functions" xmlns:date="http://exslt.org/dates-and-times" xmlns:str="http://exslt.org/strings" xmlns:SOAP12="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/extensions" xmlns:dpconfig="http://www.datapower.com/param/config">
+
+<xsl:output method="xml"/>
+
+<xsl:template match="/">
+
+<xsl:variable name="log-message">
+<log-entry>
+
+<reasonphrase>
+<xsl:value-of select="dp:variable('var://service/error-protocol-reason-phrase')"/>
+</reasonphrase>
+<errorcode>
+<xsl:value-of select="dp:variable('var://service/error-code')"/>
+</errorcode>
+<errorsubcode>
+<xsl:value-of select="dp:variable('var://service/error-subcode')"/>
+</errorsubcode>
+<errormessage>
+<xsl:value-of select="dp:variable('var://service/error-message')"/>
+</errormessage>
+<errorprotocol>
+<xsl:value-of select="dp:variable('var://service/error-protocol-response')"/>
+</errorprotocol>
+
+<authent>
+<xsl:if test="dp:variable('var://context/WSM/identity/credentials')=''">
+<xsl:text>Authentication Failure</xsl:text>
+</xsl:if>
+</authent>
+
+<local_errors>
+<xsl:variable name="XSL_MESSAGES" select="dp:variable('var://local/_extension/messages')"/>
+<xsl:copy-of select="$XSL_MESSAGES"/>
+</local_errors>
+
+<basicauthinfo>
+<xsl:value-of select="dp:auth-info('basic-auth-name')"/>
+</basicauthinfo>
+
+<type>
+<xsl:value-of select="$dpconfig:LogCategory"/>
+</type>
+<level>
+<xsl:value-of select="$dpconfig:LogPriority"/>
+</level>
+</log-entry>
+</xsl:variable>
+
+<xsl:copy-of select="$log-message"/>
+
+</xsl:template>
+</xsl:stylesheet>
+
+
+------------------------------------------------------------------
+
+IF STATEMENTS:
+
+
+<xsl:template name="sendtosplash">
+      <xsl:variable name="error_to_call" select="'var://service/error-code'" value="'196609'"/>    
+      <xsl:if test="$error_to_call">
+        <dp:set-variable name="'var://service/routing-url'" value="'http://s-datapower-mgmt.silver.com:8043'"/>
+      </xsl:if>
+</xsl:template>
+
+<xsl:call-template name="sendtosplash"/>
+
+
+WE KNOW THIS IS CORRECT:
+
+<dp:parse select="'$arbitraryData'" encoding="base-64"/>
+
+<xsl:if test="dp:variable('var:/local/_extension/error')">
+<xsl:message terminate="yes">
+<xsl:copy-of-select="dp:variable('var:/local/_extension/error')"/>
+</xsl:message>
+</xsl:if>
+
+
+SO FOR US:
+
+<xsl:if test="dp:variable('var:/local/_extension/error')">
+<dp:set-variable name="'var://service/routing-url'" value="'http://s-datapower-mgmt.silver.com:8043'"/>
+</xsl:if>
+
+
+
+----------------------------------------------------------------
+
+
+THIS STYLESHEET CAN SEND A POST VIA URL-OPEN (CAUSE IT HAS CONTENT IN IT, IT CAN DO A POST VS. GET).
+IT SENDS THE STATIC ENVELOPE TO THE ENDPOINT, AND CONTAINS DYNAMIC VARIABLES THAT HAVE COME IN FROM THE BROWSER REQUEST !
+A QUERY ACTION IS USED IN THE REQUEST RULE, TO CONVERT EVERYTHING TO XML
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:ns1="http://www.companyA.com/user/bi/1/" xmlns:dpconfig="http://www.datapower.com/param/config" xmlns:dpquery="http://www.datapower.com/param/query" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp dpconfig dpquery">
+  
+<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
+
+<xsl:template match="/*">
+
+<xsl:variable name="URI_FromBrowser" select="dp:variable('var://service/URI')"/>
+<xsl:variable name="iv" select="dp:http-request-header('iv-user')"/>
+
+<xsl:variable name="ECM_Request">
+<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://soap.listener.pdp.securent.net">
+  <soapenv:Header>
+    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+      <wsse:UsernameToken>
+        <wsse:Username>CCA_RO</wsse:Username> 
+        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">IBMfn123</wsse:Password>
+      </wsse:UsernameToken>
+    </wsse:Security>
+
+    <rh:requestHeader xmlns:rh="http://www.abc.com/utility/1/">
+      <serviceReferenceId>88d25028-2fee-4f6b-8bee-414804e726f5</serviceReferenceId> 
+      <rh:functionalContext>
+        <consumerName>WEB-ECM-IBM</consumerName> 
+        <userPrincipal>
+          <userId><xsl:value-of select="$iv"/></userId>
+          <orgRole>cn=companyA CSA</orgRole> 
+          <appRole>cn=companyA CSA</appRole>
+        </userPrincipal>
+      <target>
+        <serviceName>ECM</serviceName> 
+        <serviceOperation>rf</serviceOperation>
+      </target>
+      </rh:functionalContext>
+    </rh:requestHeader>
+  </soapenv:Header>
+
+  <soapenv:Body xmlns:ns="http://www.companyA.com/content/search/1/" xmlns:ns1="http://www.companyA.com/content/search/bi/1/">
+    <ns:searchByContentAttributesRequest>
+      <ns1:searchByContentAttributesRequest>
+        <ns1:searchCriteria><xsl:value-of select="//arg[@name='searchCriteria']"/></ns1:searchCriteria>
+        <ns1:sortBy>ApplicationUniqueID</ns1:sortBy>
+        <ns1:folderName /> 
+        <ns1:docType>CLS_CCA_Correspondence</ns1:docType>
+      </ns1:searchByContentAttributesRequest>
+    </ns:searchByContentAttributesRequest>
+  </soapenv:Body>
+</soapenv:Envelope>
+</xsl:variable>
+
+<!--
+<xsl:variable name="ECM_POST">
+<dp:url-open target="http://s-datapower-dev.silver.com:8012">
+<xsl:copy-of select="$ECM_Request"/>
+</dp:url-open>
+</xsl:variable>
+-->
+
+<!--<xsl:copy-of select="$ECM_POST"/>-->
+<xsl:copy-of select="$ECM_Request"/>
+
+</xsl:template>
+
+</xsl:stylesheet>
+
+
+
+-----------------------------------------------------------------------------------------------------
+
+
+
+Question 
+How do I obtain the HTML response from dp:url-open() extension function to my application server?  
+  
+ 
+ 
+Answer 
+Refer to the IBM® WebSphere® DataPower® Extension Elements/Functions Catalog for more detail on the dp:url-open(), dp:binary-encode(), and dp:decode() extension functions. With dp:url-open() response="binaryNode", you receive a result node as follows:
+
+<result> 
+<statuscode>0</statuscode>
+<binary>***DATA***</binary>
+</result>
+
+To access this information, you would use XPATH expression: 
+
+$binaryResponse/result/binary 
+
+where $binaryResponse is the variable capturing your dp:url-open() response. You then need to base64 encode your binary data and then decode it to the raw HTML response. Here is a sample stylesheet:
+
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:dp="http://www.datapower.com/extensions" 
+  xmlns:env="http://schemas.xmlsoap.org/soap/envelope"
+  extension-element-prefixes="dp" 
+  exclude-result-prefixes="dp" version="1.0">
+
+  <xsl:output method="html" indent="no"
+        doctype-public="-//W3C//DTD HTML 4.01 Transitional//EN"
+        doctype-system="http://www.w3.org/TR/html4/loose.dtd"/>
+
+  <xsl:template match="/">
+       
+<!-- Contact Web application -->
+    <xsl:variable name="binaryResponse">                 
+<dp:url-open target="http://<IP>:<PORT/" response="binaryNode"/>
+    </xsl:variable>
+  
+<!-- You need to base64 encode your binary data and then decode it to the raw HTML response. -->
+<xsl:variable name="encodedData" select="dp:binary-encode($binaryResponse/result/binary)"/>
+    <xsl:variable name="raw" select="dp:decode( $encodedData, 'base-64' )"/>
+
+    <xsl:message dp:priority="debug">
+                *** Raw data from url-open is: <xsl:value-of select="$raw"/>
+    </xsl:message>
+        
+  </xsl:template>
+  
+</xsl:stylesheet> 
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+META_PDP XSLT - does a lot of stuff and as usual here in this text doc, it is all correct and functional
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:ns1="http://www.abc.com/user/bi/1/" xmlns:dpconfig="http://www.datapower.com/param/config" xmlns:dpquery="http://www.datapower.com/param/query" xmlns:dp="http://www.datapower.com/extensions" extension-element-prefixes="dp" exclude-result-prefixes="dp dpconfig dpquery">
+
+<xsl:template match="/">
+
+<dp:set-mime-header name="Content-Type" value="application/pdf"/>
+
+<xsl:variable name="ivu" select="dp:http-request-header('iv-user')"/>
+<xsl:variable name="ivg" select="dp:http-request-header('iv-groupsx')"/>
+<xsl:variable name="ivsvr" select="dp:http-request-header('iv_server_name')"/>
+<xsl:variable name="ivusrl" select="dp:http-request-header('iv-user-l')"/>
+
+<xsl:variable name="Id" select="//metaData[@name='Id']/@value"/>
+
+<xsl:variable name="noOfRows_zero" select="/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companyA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='serviceResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='noOfRows'][normalize-space(.) = '']"/>
+
+<xsl:variable name="noOfRows_one" select="/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companyA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='serviceResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='noOfRows'][normalize-space(.) = '1']"/>
+
+<xsl:variable name="noOfRows_two" select="/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companyA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='serviceResponse']/*[namespace-uri()='http://www.companyA.com/content/search/bi/1/' and local-name()='noOfRows'][normalize-space(.) = '2']"/>
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://www.companyA.com/content/location/1/" xmlns:ns1="http://www.companyA.com/content/location/bi/1/" xmlns:soap="http://soap.listener.pdp.securent.net">
+  <soapenv:Header>
+    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+      <wsse:UsernameToken>
+        <wsse:Username>CCA_RO</wsse:Username> 
+        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">IBMfn123</wsse:Password>
+      </wsse:UsernameToken>
+    </wsse:Security>
+  </soapenv:Header>
+
+   <soapenv:Body>
+      <ns:getContentRequest>
+         <ns1:getContentRequest>
+            <ns1:guid><xsl:value-of select="$Id"/></ns1:guid>
+            <ns1:currentVersion>1</ns1:currentVersion>
+         </ns1:getContentRequest>
+      </ns:getContentRequest>
+   </soapenv:Body>
+
+</soapenv:Envelope>
+
+<xsl:if test="$noOfRows_zero">
+<xsl:message> NO DOCUMENT FOUND *********************** </xsl:message>
+<dp:reject> NO DOCUMENT FOUND </dp:reject>
+</xsl:if>
+
+<xsl:if test="$noOfRows_one">
+<xsl:message> JUST ONE DOCUMENT *********************** </xsl:message>
+</xsl:if>
+
+<xsl:if test="$noOfRows_two">
+<xsl:message> MORE THAN ONE DOCUMENT FOUND ****************** </xsl:message>
+<dp:reject> MORE THAN ONE DOCUMENT FOUND </dp:reject>
+</xsl:if>
+
+</xsl:template>
+</xsl:stylesheet>
+
+
+-------------------------------------------------------------------------------
+
+
+
+
+

@@ -1,0 +1,48 @@
+XPATH expression examples:
+
+
+
+
+/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='serviceResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='contentList']/contentAttribute/metaDataList/metaData/@value
+
+
+
+-------------------------------------------
+
+
+   <soapenv:Body>
+      <ns:getContentRequest>
+         <ns1:getContentRequest>
+            <ns1:guid>{2898357A-98A3-407B-A6D0-526F7ACBC513}</ns1:guid>
+            <ns1:currentVersion>1</ns1:currentVersion>
+         </ns1:getContentRequest>
+      </ns:getContentRequest>
+   </soapenv:Body>
+
+
+------------------------------------------------------
+
+
+/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='serviceResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='noOfRows'][normalize-space(.) = '1']
+
+
+
+----------------------------------------------------------------------
+
+
+
+<!--<ns1:guid>{2898357A-98A3-407B-A6D0-526F7ACBC513}</ns1:guid>-->
+
+
+------------------------------------------------------------
+
+
+/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Envelope']/*[namespace-uri()='http://schemas.xmlsoap.org/soap/envelope/' and local-name()='Body']/*[namespace-uri()='http://www.companA.com/content/search/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='searchByContentAttributesResponse']/*[namespace-uri()='http://www.companA.com/content/search/bi/1/' and local-name()='status']/*[namespace-uri()='http://www.companA.com/common/status/1/' and local-name()='status'][normalize-space(.) = 'SUCCESS']
+
+
+------------------------------------------------------------------------------
+
+
+10.33.87.38
+
+
