@@ -352,11 +352,11 @@ CustomAuth.xsl (from Oxygen project CONVERSIONS):
 		<xsl:variable name="user" select="/identity/entry/username"/>
 		<xsl:variable name="password" select="/identity/entry/password"/>
 		<xsl:variable name="url"
-			>http://10.0.16.112:9083/AIGAuthServiceWeb/sca/AIGSecurityServiceExport1</xsl:variable>
+			>http://10.0.16.112:9083/AIAuthServiceWeb/sca/AISecurityServiceExport1</xsl:variable>
 		<xsl:variable name="message">
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
 				<SOAP-ENV:Body>
-					<m:userAuthentication xmlns:m="http://www.aig.com/service/security">
+					<m:userAuthentication xmlns:m="http://www.ai888.com/service/security">
 						<input1>
 							<Username>
 								<xsl:value-of select="$user"/>
@@ -521,7 +521,7 @@ AAA Custom_AU_Request.xslt (taken from Oxygen project CONVERSIONS):
 
 
 
-Custom_Authenticate_Cardinal.xslt (taken from Oxygen project CONVERSIONS):
+Custom_Authenticate_Card888.xslt (taken from Oxygen project CONVERSIONS):
 
 
 <?xml version="1.0" encoding="UTF-8"?>
@@ -538,7 +538,7 @@ Custom_Authenticate_Cardinal.xslt (taken from Oxygen project CONVERSIONS):
 		<xsl:variable name="user" select="/identity/entry/username"/>
 		<xsl:variable name="password" select="/identity/entry/password"/>
 		<xsl:variable name="url"
-			>http://wddub00wasd01.cardinalhealth.net:7362/AuthenticationService/services/AuthenticationService</xsl:variable>
+			>http://wddub00wasd01.card888.net:7362/AuthenticationService/services/AuthenticationService</xsl:variable>
 		<xsl:variable name="message">
 			<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 				xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -575,7 +575,7 @@ Custom_Authenticate_Cardinal.xslt (taken from Oxygen project CONVERSIONS):
 
 
 
-Custom_Authorize_Cardinal.xslt (from Oxygen project CONVERSIONS):
+Custom_Authorize_Card888.xslt (from Oxygen project CONVERSIONS):
 
 
 <?xml version="1.0" encoding="UTF-8"?>
@@ -742,25 +742,25 @@ USES URL-IN VARIABLE (LIKE FROM A BROWSER INPUT WINDOW) TO ROUTE:
  
 <xsl:if test="contains($URLin, 'DocManager')">
 <dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
-<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://13.115.191.250:9445'"/>
 <dp:set-variable name="'var://service/URI'" value="'/PmInternetAccountServiceModuleWeb/ModuleContextExport/getBuildNumber'"/>
 </xsl:if>
  
 <xsl:if test="contains($URLin, 'AddressBook')">
 <dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
-<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://13.115.191.250:9445'"/>
 <dp:set-variable name="'var://service/URI'" value="'/restservlet/restapi/helloworld'"/>
 </xsl:if>
  
 <xsl:if test="contains($URLin, 'Addy')">
 <dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
-<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://13.115.191.250:9445'"/>
 <dp:set-variable name="'var://service/URI'" value="'/AddressBook'"/>
 </xsl:if>
  
 <xsl:if test="contains($URLin, 'Doccy')">
 <dp:set-variable name="'var://service/routing-url-sslprofile'" value="'ATS_sb_2_RoutingTest'"/>
-<dp:set-variable name="'var://service/routing-url'" value="'https://143.115.191.250:9445'"/>
+<dp:set-variable name="'var://service/routing-url'" value="'https://13.115.191.250:9445'"/>
 <dp:set-variable name="'var://service/URI'" value="'/DocReader'"/>
 </xsl:if>
  
@@ -935,7 +935,10 @@ and reference the faultcode number.</env:faultstring>
 
 
 
-Creating a transformation that will strip specific elements is very simple. Below is a identity transform where I added one xsl:template that matches any element that uses the {http://schemas.xmlsoap.org/ws/2004/03/addressing} namespace. You can customize this based on what namespace (in other words WS-Addressing version) you are using.
+Creating a transformation that will strip specific elements is very simple. 
+Below is a identity transform where I added one xsl:template that 
+matches any element that uses the {http://schemas.xmlsoap.org/ws/2004/03/addressing} namespace. 
+You can customize this based on what namespace (in other words WS-Addressing version) you are using.
 
 To strip elements, you simply match for them with a template and leave the template empty.
 
@@ -1071,7 +1074,7 @@ I think this will get the url attach it to cid:foo
 
 
 <dp:url-open target="{concat('cid:',bin,'?Encoding=base64')}" resolve-mode="ignore" response="ignore" data-type="binary">
-<dp:url-open target="http://eservices-test.diligenz.com/docs" data-type="binary"/>
+<dp:url-open target="http://eservices-test.com/docs" data-type="binary"/>
 </dp:url-open>
 
 Then to get the base64 data you can  (you may have to have these in different xslt’s one after the other):
@@ -1157,7 +1160,7 @@ Taken from DP forum, on using TCP socket connections raw with dp:url-open:
     </xsl:variable>
  
     <xsl:variable name="response">
-      <dp:url-open target="tcp://9.152.4.11:8888" response="xml">
+      <dp:url-open target="tcp://10.152.4.11:8888" response="xml">
         <xsl:copy-of select="$request-xml"/>
       </dp:url-open>
     </xsl:variable>
@@ -1948,7 +1951,9 @@ How do I obtain the HTML response from dp:url-open() extension function to my ap
  
  
 Answer 
-Refer to the IBM® WebSphere® DataPower® Extension Elements/Functions Catalog for more detail on the dp:url-open(), dp:binary-encode(), and dp:decode() extension functions. With dp:url-open() response="binaryNode", you receive a result node as follows:
+Refer to the IBM® WebSphere® DataPower® Extension Elements/Functions Catalog 
+for more detail on the dp:url-open(), dp:binary-encode(), and dp:decode() extension functions. 
+With dp:url-open() response="binaryNode", you receive a result node as follows:
 
 <result> 
 <statuscode>0</statuscode>
@@ -1959,7 +1964,9 @@ To access this information, you would use XPATH expression:
 
 $binaryResponse/result/binary 
 
-where $binaryResponse is the variable capturing your dp:url-open() response. You then need to base64 encode your binary data and then decode it to the raw HTML response. Here is a sample stylesheet:
+where $binaryResponse is the variable capturing your dp:url-open() response. 
+You then need to base64 encode your binary data and then decode it to the raw HTML response. 
+Here is a sample stylesheet:
 
 <?xml version="1.0" encoding="utf-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
