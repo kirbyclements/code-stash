@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -k -X POST https://dpbuddy:If6was90@192.168.0.53:5550/service/mgmt/3.0 -H "Accept: application/xml" -H "Content-Type: application/xml" -u dpbuddy:If6was90 --data-binary @- <<DATA 
+curl -k -X POST https://192.168.0.53:5550/service/mgmt/3.0 -H "Accept: application/xml" -H "Content-Type: application/xml" -u dpbuddy:If6was90 --data-binary @- <<DATA 
 <?xml version="1.0" encoding="UTF-8"?><env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
     <env:Body>
         <dp:request xmlns:dp="http://www.datapower.com/schemas/management"  domain="default">
