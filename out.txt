@@ -1,0 +1,68 @@
+Processing files in zip folder /home/ravi/Downloads/
+Processing domain alldomains/default.zip...
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoIdentCred name="iop-mgmt-idcred" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+Processing domain alldomains/DEV.zip...
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias>
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="dev-b-docs" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="DP1" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="gbadpval-sslkey" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="taeigd01.tms.toyota.com" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="ThisDP_CryptoKey" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="xg7510" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="xg7510-crypto" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoKey name="xg7510-ValCreds" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias>off</PasswordAlias></CryptoKey><CryptoSSKey name="Shared-Secret-Key" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<PasswordAlias/></BasicAuthPolicies>
+<PasswordAlias/></BasicAuthPolicies>
+<PasswordAlias/></BasicAuthPolicies>
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+<AULDAPBindPasswordAlias/>
+<AULTPAKeyFilePasswordAlias/>
+<AZLDAPBindPasswordAlias/>
+<PPLTPAKeyFilePasswordAlias/>
+<DynConfig>none</DynConfig></AAAPolicy><MQQM name="QMA" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<SSLClientConfigType>client</SSLClientConfigType></MQQM><HTTPSSourceProtocolHandler name="AIM-Conversion-HTTPS-FSH" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<QueueManager class="MQQM">QMA</QueueManager>
+<RemoteMQQM/>
+<RemoteMQQM/>
+<RemoteMQQM/>
+<RemoteMQQM/>
+Processing domain alldomains/TEST.zip...
+<UserAgent class="HTTPUserAgent">default</UserAgent></XMLManager><MQQM name="TEST-mqqm" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+<CSPPasswordAlias class="PasswordAlias">TEST-password-alias</CSPPasswordAlias>
+<SSLClientConfigType>proxy</SSLClientConfigType></MQQM><WSStylePolicy name="default" intrinsic="true" xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
