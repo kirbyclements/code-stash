@@ -53,6 +53,8 @@ for zipfile in ./*$zipfiles; do
 				fi
 				if (( $csppassword )); then
 					echo "<TD STYLE='color:#FF0000'>$csppassword</TD>"
+				else
+					echo "<TD STYLE='color:#FF0000'>$csppasswordalias</TD>"
 				fi
 				echo "</TR>"
 				fi
