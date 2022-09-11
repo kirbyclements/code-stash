@@ -34,14 +34,14 @@ for zipfile in ./*$zipfiles; do
 				retryattempts=$(echo $qm | grep -o -P '(?<=<RetryAttempts>)(?s).*(?=</RetryAttempts>)')
 				csppasswordalias=$(echo $qm | grep -o -P '(?<=<CSPPasswordAlias>)(?s).*(?=</CSPPasswordAlias>)')
 				csppassword=$(echo $qm | grep -o -P '(?<=<CSPPassword>)(?s).*(?=</CSPPassword>)')
-				if (( $retryinterval != 90 )) || (( $retryattempts != 30 )) || (( $csppasswordalias )) || (( $csppassword )); then
+				if (( $retryinterval )) || (( $retryattempts )) || (( $csppasswordalias )) || (( $csppassword )); then
 				echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
-				if (( $retryinterval != 90 )); then
+				if (( $retryinterval != '90' )); then
 					echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
 				else
 					echo "<TD STYLE='color:#000000'>$retryinterval</TD>"
 				fi
-				if (( $retryattempts != 30 )); then
+				if (( $retryattempts != '30' )); then
 					echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
 				else
 					echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
@@ -52,9 +52,9 @@ for zipfile in ./*$zipfiles; do
 					echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
 				fi
 				if (( $csppassword )); then
-					echo "<TD STYLE='color:#FF0000'>$csppassword</TD>"
+					echo "<TD STYLE='color:#FF0000'>populated</TD>"
 				else
-					echo "<TD STYLE='color:#FF0000'>$csppasswordalias</TD>"
+					echo "<TD STYLE='color:#FF0000'>$populated</TD>"
 				fi
 				echo "</TR>"
 				fi
