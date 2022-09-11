@@ -15,7 +15,7 @@ echo "</STYLE>"
 echo "</HEAD>"
 echo "<BODY>"
 
-zipfiles=$(ls -lt "./*_backup.zip" | find -name "*_backup*.zip" -type f -ctime -3)
+zipfiles=$(ls -lt "./*_backup*.zip" | find -name "*_backup*.zip" -type f -ctime -3)
 for zipfile in ./*$zipfiles; do
 	echo "<BR>DataPower Export $zipfile<BR>"
 	echo "<TABLE>"
@@ -35,7 +35,7 @@ for zipfile in ./*$zipfiles; do
 				retryinterval=$(echo $qm | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)')
 				retryattempts=$(echo $qm | grep -o -P '(?<=<RetryAttempts>)(?s).*(?=</RetryAttempts>)')
 				passwordalias=$(echo $qm | grep -o -P '(?<=<CSPPasswordAlias>)<?s).*(?=</CSPPasswordAlias>)')
-				if (( $retryinterval != 90 )) || (( $retryattempts != 30 )) || (( $passwordalias = * )); then
+				if (( $retryinterval != 90 )) || (( $retryattempts != 30 )) || (( $passwordalias )); then
 				echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
 				if (( $retryinterval != 90 )); then
 					echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
@@ -47,10 +47,10 @@ for zipfile in ./*$zipfiles; do
 				else
 					echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
 				fi
-				if (( $passwordalias = * )); then
-					echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
+				if (( $passwordalias )); then
+					echo "<TD STYLE='color:#FF0000'>$passwordalias</TD>"
 				else
-					echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
+					echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
 				fi
 				echo "</TR>"
 				fi
