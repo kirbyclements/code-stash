@@ -51,17 +51,17 @@ for zipfile in ./*$zipfiles; do
 				if (( $csppasswordalias )); then
 					echo "<TD STYLE='color:#FF0000'>$csppasswordalias</TD>"
 				else
-					echo "<TD STYLE='color:#000000'></TD>"
+					echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
 				fi
 				if (( $csppassword )); then
-					echo "<TD STYLE='color:#FF0000'>yes</TD>"
+					echo "<TD STYLE='color:#FF0000'></TD>"
 				else
 					echo "<TD STYLE='color:#FF0000'></TD>"
 				fi
                 if (( $passwordalias )); then
 					echo "<TD STYLE='color:#FF0000'>$passwordalias</TD>"
 				else
-					echo "<TD STYLE='color:#FF0000'></TD>"
+					echo "<TD STYLE='color:#FF0000'>$passwordalias</TD>"
 				fi
 				echo "</TR>"
 				fi
