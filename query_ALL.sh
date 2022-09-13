@@ -28,7 +28,7 @@ for zipfile in ./*$zipfiles; do
 		domain=$(echo $exportxml | grep -o -P '(?<=domain\=").*(?=\")' | sed 's/".*//')
 		device=$(echo $exportxml | grep -o -P '(?<=<device-name>)(?s).*(?=</device-name>)')
 
-		echo $exportxml | grep -o -P '(?<=<MQQM)(?s).*(?=</MQQM>)''(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)' | while read -r qm pa; do
+		echo $exportxml | grep -o -P '(?<=<MQQM)(?s).*(?=</MQQM>)||(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)' | while read -r qm pa; do
 				qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
 				retryinterval=$(echo $qm | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)')
 				retryattempts=$(echo $qm | grep -o -P '(?<=<RetryAttempts>)(?s).*(?=</RetryAttempts>)')
