@@ -19,7 +19,7 @@ zipfiles=$(ls -lt | find -name "*_backup*.zip" -type f -ctime -3)
 for zipfile in ./*$zipfiles; do
 	echo "<BR>DataPower Export $zipfile<BR>"
 	echo "<TABLE>"
-	echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>QMANAGER</TH><TH>RETRY INTERVAL</TH><TH>RETRY ATTEMPTS</TH><TH>PASSWORD ALIAS</TH><TH>PASSWORD-DEPRECATED</TH></TR>"
+	echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>QMANAGER</TH><TH>RETRY INTERVAL</TH><TH>RETRY ATTEMPTS</TH><TH>PASSWORD ALIAS</TH></TR>"
 
 	zipdir=$(basename -s .zip $zipfile)
 	unzip -jo $zipfile '*.zip' -d ./$zipdir > /dev/null
@@ -33,8 +33,8 @@ for zipfile in ./*$zipfiles; do
 				retryinterval=$(echo $qm | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)')
 				retryattempts=$(echo $qm | grep -o -P '(?<=<RetryAttempts>)(?s).*(?=</RetryAttempts>)')
 				csppasswordalias=$(echo $qm | grep -o -P '(?<=<CSPPasswordAlias>)(?s).*(?=</CSPPasswordAlias>)')
-				csppassword=$(echo $qm | grep -o -P '(?<=<CSPPassword>)(?s).*(?=</CSPPassword>)')
-				if (( $retryinterval )) || (( $retryattempts )) || (( $csppasswordalias )) || (( $csppassword )); then
+
+				if (( $retryinterval )) || (( $retryattempts )) || (( $csppasswordalias )); then
 				echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
 				if (( $retryinterval != '90' )); then
 					echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
@@ -51,13 +51,10 @@ for zipfile in ./*$zipfiles; do
 				else
 					echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
 				fi
-				if (( $csppassword )); then
-					echo "<TD STYLE='color:#FF0000'>populated</TD>"
-				else
-					echo "<TD STYLE='color:#FF0000'>$populated</TD>"
-				fi
 				echo "</TR>"
+
 				fi
+				
 			   done
 	done
 	echo "</TABLE><BR><BR>"
