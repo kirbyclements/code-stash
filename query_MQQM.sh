@@ -15,14 +15,14 @@ echo "</STYLE>"
 echo "</HEAD>"
 echo "<BODY>"
 
-zipfiles=$(ls -lt | find -name "*_backup*.zip" -type f -ctime -3)
-for zipfile in ./*$zipfiles; do
+zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -10)
+for zipfile in $zipfiles; do
 	echo "<BR>DataPower Export $zipfile<BR>"
 	echo "<TABLE>"
 	echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>QMANAGER</TH><TH>RETRY INTERVAL</TH><TH>RETRY ATTEMPTS</TH><TH>PASSWORD ALIAS</TH></TR>"
 
 	zipdir=$(basename -s .zip $zipfile)
-	unzip -jo $zipfile '*.zip' -d ./$zipdir > /dev/null
+	unzip -jo $zipfile '*.zip' -d $zipdir > /dev/null
 	for exportfile in $zipdir/*.zip; do
 		exportxml=$(unzip -p $exportfile export.xml)
 		domain=$(echo $exportxml | grep -o -P '(?<=domain\=").*(?=\")' | sed 's/".*//')
