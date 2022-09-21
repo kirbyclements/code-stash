@@ -32,7 +32,7 @@ for zipfile in ./*$zipfiles; do
 				qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
 				retryinterval=$(echo $qm | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)')
 				retryattempts=$(echo $qm | grep -o -P '(?<=<RetryAttempts>)(?s).*(?=</RetryAttempts>)')
-				csppasswordalias=$(echo $qm | grep -o -P '(?<=<CSPPasswordAlias>)(?s).*(?=</CSPPasswordAlias>)')
+				csppasswordalias=$(echo $qm | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
 
 				if (( $retryinterval )) || (( $retryattempts )) || (( $csppasswordalias )); then
 				echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
@@ -58,7 +58,7 @@ for zipfile in ./*$zipfiles; do
 			   done
 	done
 	echo "</TABLE><BR><BR>"
-	rm -rf *_backup-*2022
+	#rm -rf *_backup-*2022
 	#rm -rf ./$zipdir
 done
 echo "</BODY>"
