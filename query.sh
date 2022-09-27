@@ -55,7 +55,7 @@ for zipfile in $zipfiles; do
                                 fi
                                 if [ ! -z "$csppasswordalias" ]
                                 then
-                                        echo "<TD STYLE='color:#FF0000'>$csppasswordalias</TD>"
+                                        echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
                                 else
                                         echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
                                 fi
