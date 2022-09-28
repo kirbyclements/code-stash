@@ -41,17 +41,17 @@ for zipfile in $zipfiles; do
 				qmend="MQQM>"
 				if [[ $qmdata == *"$qmend"* ]]; then
                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
-                                if [ ! "$retryinterval" = "90" ]
+                                if [ "$retryinterval" = "90" ]
                                 then
-                                        echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
-                                else
                                         echo "<TD STYLE='color:#000000'>$retryinterval</TD>"
-                                fi
-                                if [ ! "$retryattempts" = "30" ]
-                                then
-                                        echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
                                 else
+                                        echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
+                                fi
+                                if [ "$retryattempts" = "30" ]
+                                then
                                         echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
+                                else
+                                        echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
                                 fi
                                 if [ ! -z "$csppasswordalias" ]
                                 then
