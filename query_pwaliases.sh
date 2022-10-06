@@ -2,7 +2,7 @@
 #echo "Processing files in zip folder $1"
 echo "<HTML>"
 echo "<HEAD>"
-echo "<TITLE>DataPower-MQQM Report</TITLE>"
+echo "<TITLE>DataPower Report</TITLE>"
 echo "<STYLE>"
 echo "table, th, td {"
 echo "        border: 1px solid black;"
@@ -15,11 +15,11 @@ echo "</STYLE>"
 echo "</HEAD>"
 echo "<BODY>"
 
-zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -2)
+zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -90)
 for zipfile in $zipfiles; do
 	echo "<BR>DataPower Export $zipfile<BR>"
 	echo "<TABLE>"
-	echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>QMANAGER</TH><TH>RETRY INTERVAL</TH><TH>RETRY ATTEMPTS</TH><TH>PASSWORD ALIAS</TH></TR>"
+	echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>QMANAGER</TH><TH>RETRY INTERVAL</TH><TH>RETRY ATTEMPTS</TH><TH>PASSWORD ALIAS</TH><TH>UA PASSWORD ALIAS</TH></TR>"
 
 	zipdir=$(basename -s .zip $zipfile)
 	unzip -jo $zipfile '*.zip' -d $zipdir > /dev/null
@@ -31,11 +31,12 @@ for zipfile in $zipfiles; do
 		do
 			if [[ $qm == *"<MQQM"* ]]; then
 			qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
-			#echo QMNAME: $qmname
 			finished=false
 			retryinterval=""
 			retryattempts=""
 			csppasswordalias=""
+                        passwordalias=""
+			
 			while [ "$finished" != "true" ]; do
 				read -r qmdata
 				qmend="MQQM>"
@@ -57,26 +58,34 @@ for zipfile in $zipfiles; do
                                 else
                                         echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
                                 fi
+				if [ ! -z "$passwordalias" ]
+                                then
+                                        echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
+                                else
+                                        echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
+                                fi
                                 echo "</TR>"
 
 					finished=true
+
 				else if [[ $qmdata == *"<RetryInterval>"* ]]; then
-					#retryinterval=$(echo $qmdata | grep -oP '(?<=<RetryInterval>)[\s\S]*?(?=</RetryInterval>)')
 					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)' )
 				else if [[ $qmdata == *"<RetryAttempts>"* ]]; then
 					retryattempts=$(echo $qmdata | grep -Po '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
 					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
+				else if [[ $qmdata == *"<PasswordAlias"* ]]; then
+					passwordalias=$(echo $qmdata | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+				fi
 				fi
 				fi
 				fi
 				fi
 			done 
 			fi
-		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias" | sed 's/<MQQM/\n&/g')
+		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
-	#rm -rf *_backup-*2022
 	rm -rf ./$zipdir
 done
 echo "</BODY>"
