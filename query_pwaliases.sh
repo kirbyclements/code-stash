@@ -27,10 +27,11 @@ for zipfile in $zipfiles; do
 		exportxml=$(unzip -p $exportfile export.xml)
 		domain=$(echo $exportxml | grep -o -P '(?<=domain\=").*(?=\")' | sed 's/".*//')
 		device=$(echo $exportxml | grep -o -P '(?<=<device-name>)(?s).*(?=</device-name>)')
-		while read -r qm
+		while read -r qm pa
 		do
-			if [[ $qm == *"<MQQM"* ]]; then
+			if [[ $qm == *"<MQQM"* ]] | [[ $pa == *"<PasswordAlias"* ]]; then
 			qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
+			paname=$(echo $pa | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
 			finished=false
 			retryinterval=""
 			retryattempts=""
@@ -39,8 +40,9 @@ for zipfile in $zipfiles; do
 			
 			while [ "$finished" != "true" ]; do
 				read -r qmdata
+				read -r padata
 				qmend="MQQM>"
-				if [[ $qmdata == *"$qmend"* ]]; then
+				if [[ $qmdata == *"$qmend"* ]] | [[ $padata == *"$paend"* ]]; then
                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
                                 if (( $retryinterval != '30' )); then
                                         echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
