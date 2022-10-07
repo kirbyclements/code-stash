@@ -35,7 +35,7 @@ for zipfile in $zipfiles; do
 			retryinterval=""
 			retryattempts=""
 			csppasswordalias=""
-                        passwordalias=""
+			passwordalias=""
 			
 			while [ "$finished" != "true" ]; do
 				read -r qmdata
@@ -58,7 +58,7 @@ for zipfile in $zipfiles; do
                                 else
                                         echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
                                 fi
-				if [ ! -z "$passwordalias" ]
+                                if [ ! -z "$passwordalias" ]
                                 then
                                         echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                 else
@@ -84,6 +84,7 @@ for zipfile in $zipfiles; do
 			done 
 			fi
 		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias" | sed 's/<MQQM/\n&/g')
+		#done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias\|AULDAPBindPasswordAlias\|AULTPAKeyPasswordAlias\|AZLDAPBindPasswordAlias\|PPLTPAKeyPasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
 	rm -rf ./$zipdir
