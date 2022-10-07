@@ -76,7 +76,7 @@ for zipfile in $zipfiles; do
 					retryattempts=$(echo $qmdata | grep -Po '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
 					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
-				else if [[ $qmdata == *"<PasswordAlias"* ]]; then
+				else if [[ $padata == *"<PasswordAlias"* ]]; then
 					passwordalias=$(echo $qmdata | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
 				fi
 				fi
