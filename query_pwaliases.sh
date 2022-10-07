@@ -77,7 +77,7 @@ for zipfile in $zipfiles; do
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
 					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
 				else if [[ $padata == *"<PasswordAlias"* ]]; then
-					passwordalias=$(echo $qmdata | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+					passwordalias=$(echo $padata | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
 				fi
 				fi
 				fi
