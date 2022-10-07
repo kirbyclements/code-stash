@@ -83,7 +83,7 @@ for zipfile in $zipfiles; do
 				fi
 			done 
 			fi
-		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias" | sed 's/<MQQM/\n&/g')
+		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias" | sed -e 's/<MQQM/\n&/g' -e 's/<PasswordAlias/\n&/g')
 		#done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|PasswordAlias\|AULDAPBindPasswordAlias\|AULTPAKeyPasswordAlias\|AZLDAPBindPasswordAlias\|PPLTPAKeyPasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
