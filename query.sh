@@ -81,7 +81,7 @@ for zipfile in $zipfiles; do
                                 echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                 echo "</TR>"
                         fi
-                done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|<PasswordAlias class" | sed 's/<MQQM/\n&/g')
+        done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|<PasswordAlias class" | sed 's/<MQQM/\n&/g')
 		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
