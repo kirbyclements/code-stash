@@ -73,6 +73,15 @@ for zipfile in $zipfiles; do
 				fi
 			done 
 			fi
+			if [[ $qm == *"<PasswordAlias"* ]]; then
+                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD></TD>"
+                                echo "<TD STYLE='color:#000000'></TD>"
+                                echo "<TD STYLE='color:#000000'></TD>"
+                                passwordalias=$(echo $qm | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+                                echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
+                                echo "</TR>"
+                        fi
+                done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias\|<PasswordAlias class" | sed 's/<MQQM/\n&/g')
 		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
