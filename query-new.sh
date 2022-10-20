@@ -2,7 +2,7 @@
 #echo "Processing files in zip folder $1"
 echo "<HTML>"
 echo "<HEAD>"
-echo "<TITLE>DataPower-MQQM Report</TITLE>"
+echo "<TITLE>DataPower Report</TITLE>"
 echo "<STYLE>"
 echo "table, th, td {"
 echo "        border: 1px solid black;"
@@ -14,6 +14,8 @@ echo "}"
 echo "</STYLE>"
 echo "</HEAD>"
 echo "<BODY>"
+
+cd /trvapps/dev_datapower_backups
 
 zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -10)
 for zipfile in $zipfiles; do
@@ -31,7 +33,6 @@ for zipfile in $zipfiles; do
 		do
 			if [[ $qm == *"<MQQM"* ]]; then
 			qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
-			#echo QMNAME: $qmname
 			finished=false
 			retryinterval=""
 			retryattempts=""
@@ -61,7 +62,6 @@ for zipfile in $zipfiles; do
 
 					finished=true
 				else if [[ $qmdata == *"<RetryInterval>"* ]]; then
-					#retryinterval=$(echo $qmdata | grep -oP '(?<=<RetryInterval>)[\s\S]*?(?=</RetryInterval>)')
 					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)' )
 				else if [[ $qmdata == *"<RetryAttempts>"* ]]; then
 					retryattempts=$(echo $qmdata | grep -Po '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
@@ -325,7 +325,7 @@ for zipfile in $zipfiles; do
         echo "</TABLE><BR><BR>"
 
 	#rm -rf *_backup-*2022
-	#rm -rf ./$zipdir
+	rm -rf ./$zipdir
 done
 echo "</BODY>"
 echo "</HTML>"
