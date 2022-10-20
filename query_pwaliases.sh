@@ -31,7 +31,6 @@ for zipfile in $zipfiles; do
 		do
 			if [[ $qm == *"<MQQM"* ]] | [[ $pa == *"<PasswordAlias"* ]]; then
 			qmname=$(echo $qm | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
-			paname=$(echo $pa | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
 			finished=false
 			retryinterval=""
 			retryattempts=""
@@ -40,9 +39,8 @@ for zipfile in $zipfiles; do
 			
 			while [ "$finished" != "true" ]; do
 				read -r qmdata
-				read -r padata
 				qmend="MQQM>"
-				if [[ $qmdata == *"$qmend"* ]] | [[ $padata == *"$paend"* ]]; then
+				if [[ $qmdata == *"$qmend"* ]]; then
                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
                                 if (( $retryinterval != '30' )); then
                                         echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
@@ -60,12 +58,6 @@ for zipfile in $zipfiles; do
                                 else
                                         echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
                                 fi
-                                if [ ! -z "$passwordalias" ]
-                                then
-                                        echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
-                                else
-                                        echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
-                                fi
                                 echo "</TR>"
 
 					finished=true
@@ -76,9 +68,6 @@ for zipfile in $zipfiles; do
 					retryattempts=$(echo $qmdata | grep -Po '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
 					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
-				else if [[ $padata == *"<PasswordAlias"* ]]; then
-					passwordalias=$(echo $padata | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
-				fi
 				fi
 				fi
 				fi
