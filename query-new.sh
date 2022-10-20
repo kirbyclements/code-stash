@@ -2,7 +2,7 @@
 #echo "Processing files in zip folder $1"
 echo "<HTML>"
 echo "<HEAD>"
-echo "<TITLE>DataPower Report</TITLE>"
+echo "<TITLE>DataPower-MQQM Report</TITLE>"
 echo "<STYLE>"
 echo "table, th, td {"
 echo "        border: 1px solid black;"
@@ -15,7 +15,7 @@ echo "</STYLE>"
 echo "</HEAD>"
 echo "<BODY>"
 
-cd /trvapps/dev_datapower_backups
+cd /trvapps/dev_datatpower_backups
 
 zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -10)
 for zipfile in $zipfiles; do
@@ -320,42 +320,6 @@ for zipfile in $zipfiles; do
                         done
                         fi
                 done < <(unzip -p $exportfile export.xml | grep "<AAAPolicy name\|<AULDAPBindPasswordAlias\|<AULTPAKeyFilePasswordAlias\|<AZLDAPBindPasswordAlias\|</AAAPolicy" | sed 's/<AAAPolicy/\n&/g')
-
-		while read -r line
-                do
-                        if [[ $line == *"<HTTPUserAgent"* ]]; then
-                        objname="HTTPUserAgent"
-						loopend="</HTTPUserAgent"
-						if [[ $line == *"$loopend"* ]]; then
-							finished=true
-						else
-                        	finished=false
-						fi
-                        passwordalias=""
-                        username=$(echo $line | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
-                        while [ "$finished" != "true" ]; do
-                                read -r nextline
-                                if [[ $nextline == *'<PasswordAlias'* ]]; then
-                                        passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
-                                fi
-                                if [[ $nextline == *"$loopend"* ]]; then
-										if [ -z "$passwordalias" ]
-										then
-                                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
-                                                echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
-                                                echo "</TR>"
-                                        else
-                                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
-                                                echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
-                                                echo "</TR>"
-                                        fi
-                                		finished=true
-                                fi
-                        done
-                        fi
-                done < <(unzip -p $exportfile export.xml | grep "<HTTPUserAgent \|<PasswordAlias\|</HTTPUserAgent" | sed 's/<HTTPUserAgent/\n&/g')
 
         done
         echo "</TABLE><BR><BR>"
