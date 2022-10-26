@@ -1,0 +1,11 @@
+<HTTPUserAgent xmlns:dp="http://www.datapower.com/schemas/management" xmlns:env="http://www.w3.org/2003/05/soap-envelope" name="CSILTPAProxyUA">
+    <mAdminState>enabled</mAdminState>
+    <MaxRedirects>8</MaxRedirects>
+    <Timeout>300</Timeout>
+    <BasicAuthPolicies>
+    <RegExp>*</RegExp>
+    <UserName>test_a</UserName>
+    <Password>23234234</Password>
+    <PasswordAlias/>
+    </BasicAuthPolicies>
+</HTTPUserAgent>
