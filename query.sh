@@ -63,12 +63,18 @@ for zipfile in $zipfiles; do
 					finished=true
 				else if [[ $qmdata == *"<RetryInterval>"* ]]; then
 					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)' )
+				else if [[ $qmdata == *"<RetryInterval"* ]]; then
+					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval read-only="true">)(?s).*(?=</RetryInterval>)' )
 				else if [[ $qmdata == *"<RetryAttempts>"* ]]; then
-					retryattempts=$(echo $qmdata | grep -Po '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
+					retryattempts=$(echo $qmdata | grep -o -P '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
+				else if [[ $qmdata == *"<RetryAttempts"* ]]; then
+					retryattempts=$(echo $qmdata | grep -o -P '(?<=<RetryAttempts read-only="true").*?(?=</RetryAttempts>)')
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
 					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
 				fi
 				fi
+                                fi
+                                fi
 				fi
 				fi
 			done 
