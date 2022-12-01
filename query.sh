@@ -17,7 +17,7 @@ echo "<BODY>"
 
 cd /trvapps/dev_datapower_backups
 
-zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -10)
+zipfiles=$(ls -lt | find -name "*backup*.zip" -type f -ctime -2)
 for zipfile in $zipfiles; do
 	echo "<BR>DataPower Export $zipfile<BR>"
 	echo "<TABLE>"
