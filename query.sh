@@ -96,7 +96,7 @@ for zipfile in $zipfiles; do
                 do
                         if [[ $line == *"<BasicAuthPolicies"* ]]; then
                         objname="BasicAuthPolicies"
-						loopend="BasicAuthPolicies>"
+						loopend="</BasicAuthPolicies>"
 						if [[ $line == *"$loopend"* ]]; then
 							finished=true
 						else
