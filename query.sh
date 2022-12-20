@@ -108,6 +108,8 @@ for zipfile in $zipfiles; do
                                 read -r nextline
                                 if [[ $nextline == *'<PasswordAlias class="PasswordAlias'* ]]; then
                                 	passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+                                elif [[ $nextline == *'<PasswordAlias read-only="true" class="PasswordAlias'* ]]; then
+                                    passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias read-only="true" class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
                                 elif [[ $nextline == *'<UserName'* ]]; then
                                 	username=$(echo $nextline | grep -o -P '(?<=<UserName>)(?s).*(?=</UserName>)')
                                 fi
