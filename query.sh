@@ -70,7 +70,8 @@ for zipfile in $zipfiles; do
 				else if [[ $qmdata == *"<RetryAttempts"* ]]; then
 					retryattempts=$(echo $qmdata | grep -o -P '(?<=<RetryAttempts read-only="true").*?(?=</RetryAttempts>)')
 				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
-					csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
+					#csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
+                                        csppasswordalias=$(echo $qmdata | grep -o -P '<CSPPasswordAlias.*class="PasswordAlias">\K.*(?=</CSPPasswordAlias>)')
 				fi
 				fi
                                 fi
@@ -82,7 +83,6 @@ for zipfile in $zipfiles; do
 		done < <(unzip -p $exportfile export.xml | grep "MQQM\|RetryInterval\|RetryAttempts\|CSPPasswordAlias" | sed 's/<MQQM/\n&/g')
 	done
 	echo "</TABLE><BR><BR>"
-
 
         echo "<TABLE>"
         echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>OBJECT</TH><TH>NAME</TH><TH>PASSWORD ALIAS</TH></TR>"
