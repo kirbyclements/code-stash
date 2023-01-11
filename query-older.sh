@@ -85,7 +85,7 @@ for zipfile in $zipfiles; do
 	echo "</TABLE><BR><BR>"
 
         echo "<TABLE>"
-        echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>OBJECT</TH><TH>NAME</TH><TH>USERNAME</TH><TH>PASSWORD ALIAS</TH></TR>"
+        echo "<TR STYLE='background-color:#888888;color:#FFFFFF'><TH>DEVICE</TH><TH>DOMAIN</TH><TH>OBJECT</TH><TH>NAME</TH><TH>PASSWORD ALIAS</TH></TR>"
         zipdir=$(basename -s .zip $zipfile)
         unzip -jo $zipfile '*.zip' -d $zipdir > /dev/null
         for exportfile in $zipdir/*.zip; do
@@ -120,7 +120,6 @@ for zipfile in $zipfiles; do
                                     else
                                 		echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                         echo "<TD STYLE='color:#000000'>$username</TD>"
-                                        echo "<TD STYLE='color:#000000'></TD>"
                                         echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                 		echo "</TR>"
                                 	fi
@@ -154,7 +153,6 @@ for zipfile in $zipfiles; do
                                         else
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                                 echo "</TR>"
                                         fi
@@ -188,7 +186,6 @@ for zipfile in $zipfiles; do
                                         else
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                                 echo "</TR>"
                                         fi
@@ -222,7 +219,6 @@ for zipfile in $zipfiles; do
                                         else
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
                                                 echo "</TR>"
                                         fi
@@ -262,7 +258,6 @@ for zipfile in $zipfiles; do
 										then
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$auldappasswordalias</TD>"
                                                 echo "</TR>"
 										fi
@@ -270,7 +265,6 @@ for zipfile in $zipfiles; do
 										then
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$mcldappasswordalias</TD>"
                                                 echo "</TR>"
                                         fi
@@ -314,21 +308,18 @@ for zipfile in $zipfiles; do
 										then
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$auldappasswordalias</TD>"
                                                 echo "</TR>"
                                         elif [ ! -z "$aultpapasswordalias" ]
 										then
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$aultpapasswordalias</TD>"
                                                 echo "</TR>"
                                         elif [ ! -z "$azldappasswordalias" ]
 										then
                                                 echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                                 echo "<TD STYLE='color:#000000'>$username</TD>"
-                                                echo "<TD STYLE='color:#000000'></TD>"
                                                 echo "<TD STYLE='color:#000000'>$azldappasswordalias</TD>"
                                                 echo "</TR>"
                                         fi
@@ -349,26 +340,30 @@ for zipfile in $zipfiles; do
                         	finished=false
 						fi
                         passwordalias=""
-                        pausername=""
                         username=$(echo $line | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
                                 if [[ $nextline == *'<PasswordAlias'* ]]; then
                                         passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
-                                        echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
-                                        echo "<TD STYLE='color:#000000'>$username</TD>"
-                                        echo "<TD STYLE='color:#000000'>$pausername</TD><TD STYLE='color:#000000'>$passwordalias</TD>"
-                                        echo "</TR>"
-                                fi
-                                if [[ $nextline == *'<UserName'* ]]; then
-                                        pausername=$(echo $nextline | grep -o -P '<UserNam.*>\K.*(?=</UserName>)')
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
-                                	finished=true
+										if [ -z "$passwordalias" ]
+										then
+                                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
+                                                echo "<TD STYLE='color:#000000'>$username</TD>"
+                                                echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
+                                                echo "</TR>"
+                                        else
+                                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
+                                                echo "<TD STYLE='color:#000000'>$username</TD>"
+                                                echo "<TD STYLE='color:#000000'>$passwordalias</TD>"
+                                                echo "</TR>"
+                                        fi
+                                		finished=true
                                 fi
                         done
                         fi
-                done < <(unzip -p $exportfile export.xml | grep "<HTTPUserAgent \|<PasswordAlias\|<UserName\|</HTTPUserAgent" | sed 's/<HTTPUserAgent/\n&/g')
+                done < <(unzip -p $exportfile export.xml | grep "<HTTPUserAgent \|<PasswordAlias\|</HTTPUserAgent" | sed 's/<HTTPUserAgent/\n&/g')
 
         done
         echo "</TABLE><BR><BR>"
