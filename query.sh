@@ -41,42 +41,31 @@ for zipfile in $zipfiles; do
 				read -r qmdata
 				qmend="MQQM>"
 				if [[ $qmdata == *"$qmend"* ]]; then
-                                echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
-                                if [[ $retryinterval != '30' ]]; then
-                                        echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
-                                else
-                                        echo "<TD STYLE='color:#000000'>$retryinterval</TD>"
-                                fi
-                                if [[ $retryattempts != '90' ]]; then
-                                        echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
-                                else
-                                        echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
-                                fi
-                                if [ ! -z "$csppasswordalias" ]
-                                then
-                                        echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
-                                else
-                                        echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
-                                fi
-                                echo "</TR>"
-
-					finished=true
-				else if [[ $qmdata == *"<RetryInterval>"* ]]; then
-					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval>)(?s).*(?=</RetryInterval>)' )
-				else if [[ $qmdata == *"<RetryInterval"* ]]; then
-					retryinterval=$(echo $qmdata | grep -o -P '(?<=<RetryInterval read-only="true">)(?s).*(?=</RetryInterval>)' )
-				else if [[ $qmdata == *"<RetryAttempts>"* ]]; then
-					retryattempts=$(echo $qmdata | grep -o -P '(?<=<RetryAttempts>).*?(?=</RetryAttempts>)')
-				else if [[ $qmdata == *"<RetryAttempts"* ]]; then
-					retryattempts=$(echo $qmdata | grep -o -P '(?<=<RetryAttempts read-only="true").*?(?=</RetryAttempts>)')
-				else if [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
-					#csppasswordalias=$(echo $qmdata | grep -o -P '(?<=<CSPPasswordAlias class="PasswordAlias">)(?s).*(?=</CSPPasswordAlias>)')
-                                        csppasswordalias=$(echo $qmdata | grep -o -P '<CSPPasswordAlias.*class="PasswordAlias">\K.*(?=</CSPPasswordAlias>)')
-				fi
-				fi
-                                fi
-                                fi
-				fi
+                        echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$qmname</TD>"
+                        if [[ $retryinterval != '30' ]]; then
+                                echo "<TD STYLE='color:#FF0000'>$retryinterval</TD>"
+                        else
+                                echo "<TD STYLE='color:#000000'>$retryinterval</TD>"
+                        fi
+                        if [[ $retryattempts != '90' ]]; then
+                                echo "<TD STYLE='color:#FF0000'>$retryattempts</TD>"
+                        else
+                                echo "<TD STYLE='color:#000000'>$retryattempts</TD>"
+                        fi
+                        if [ ! -z "$csppasswordalias" ]
+                        then
+                                echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
+                        else
+                                echo "<TD STYLE='color:#000000'>$csppasswordalias</TD>"
+                        fi
+                        echo "</TR>"
+					    finished=true
+				elif [[ $qmdata == *"<RetryInterval"* ]]; then
+                    retryinterval=$(echo $qmdata | grep -o -P '<RetryInterval.*>\K.*(?=</RetryInterval>)')
+				elif [[ $qmdata == *"<RetryAttempts"* ]]; then
+                    retryattempts=$(echo $qmdata | grep -o -P '<RetryAttempts.*>\K.*(?=</RetryAttempts>)')
+				elif [[ $qmdata == *"<CSPPasswordAlias"* ]]; then
+                    csppasswordalias=$(echo $qmdata | grep -o -P '<CSPPasswordAlias.*class="PasswordAlias">\K.*(?=</CSPPasswordAlias>)')
 				fi
 			done 
 			fi
@@ -106,12 +95,10 @@ for zipfile in $zipfiles; do
                         username=""
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
-                                if [[ $nextline == *'<PasswordAlias class="PasswordAlias'* ]]; then
-                                	passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
-                                elif [[ $nextline == *'<PasswordAlias read-only="true" class="PasswordAlias'* ]]; then
-                                    passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias read-only="true" class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+                                if [[ $nextline == *'<PasswordAlias'* ]]; then
+                                    passwordalias=$(echo $nextline | grep -o -P '<PasswordAlias.*>\K.*(?=</PasswordAlias>)')
                                 elif [[ $nextline == *'<UserName'* ]]; then
-                                	username=$(echo $nextline | grep -o -P '(?<=<UserName>)(?s).*(?=</UserName>)')
+                                    username=$(echo $nextline | grep -o -P '<UserName.*>\K.*(?=</UserName>)')                                    
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                		if [ -z "$passwordalias" ]
@@ -128,7 +115,7 @@ for zipfile in $zipfiles; do
                                 fi
                         done
                         fi
-                done < <(unzip -p $exportfile export.xml | grep "BasicAuthPolicies\|<PasswordAlias class\|<UserName>\|</BasicAuthPolicies>" | sed 's/<BasicAuthPolicies/\n&/g')
+                done < <(unzip -p $exportfile export.xml | grep "BasicAuthPolicies\|<PasswordAlias\|<UserName>\|</BasicAuthPolicies>" | sed 's/<BasicAuthPolicies/\n&/g')
 
                 while read -r line
                 do
@@ -144,8 +131,8 @@ for zipfile in $zipfiles; do
                         username=$(echo $line | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
-                                if [[ $nextline == *'<Alias class='* ]]; then
-                                        passwordalias=$(echo $nextline | grep -o -P '(?<=<Alias class="PasswordAlias">)(?s).*(?=</Alias>)')
+                                if [[ $nextline == *'<Alias'* ]]; then
+                                        passwordalias=$(echo $nextline | grep -o -P '<Alias.*>\K.*(?=</Alias>)')
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                         if [ -z "$passwordalias" ]
@@ -162,7 +149,7 @@ for zipfile in $zipfiles; do
                                 fi
                         done
                         fi
-                done < <(unzip -p $exportfile export.xml | grep "<CryptoKey\|<PasswordAlias>on\|</Alias class=\|</CryptoKey" | sed 's/<CryptoKey/\n&/g')
+                done < <(unzip -p $exportfile export.xml | grep "<CryptoKey\|<PasswordAlias>on\|</Alias\|</CryptoKey" | sed 's/<CryptoKey/\n&/g')
 				
                 while read -r line
                 do
@@ -178,8 +165,8 @@ for zipfile in $zipfiles; do
                         username=$(echo $line | grep -o -P '(?<=name\=").*(?=\")' | sed 's/".*//')
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
-                                if [[ $nextline == *'<Alias class='* ]]; then
-                                        passwordalias=$(echo $nextline | grep -o -P '(?<=<Alias class="PasswordAlias">)(?s).*(?=</Alias>)')
+                                if [[ $nextline == *'<Alias'* ]]; then
+                                        passwordalias=$(echo $nextline | grep -o -P '<Alias.*>\K.*(?=</Alias>)')
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                         if [ -z "$passwordalias" ]
@@ -196,7 +183,7 @@ for zipfile in $zipfiles; do
                                 fi
                         done
                         fi
-                done < <(unzip -p $exportfile export.xml | grep "<CryptoCertificate\|<PasswordAlias>on\|</Alias class=\|</CryptoCertificate" | sed 's/<CryptoCertificate/\n&/g')				
+                done < <(unzip -p $exportfile export.xml | grep "<CryptoCertificate\|<PasswordAlias>on\|</Alias\|</CryptoCertificate" | sed 's/<CryptoCertificate/\n&/g')				
 
                 while read -r line
                 do
@@ -213,7 +200,7 @@ for zipfile in $zipfiles; do
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
                                 if [[ $nextline == *'<PPLTPAKeyFilePasswordAlias'* ]]; then
-                                        passwordalias=$(echo $nextline | grep -o -P '(?<=<PPLTPAKeyFilePasswordAlias class="PasswordAlias">)(?s).*(?=</PPLTPAKeyFilePasswordAlias>)')
+                                        passwordalias=$(echo $nextline | grep -o -P '<PPLTPAKeyFilePasswordAlias.*>\K.*(?=</PPLTPAKeyFilePasswordAlias>)')
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                         if [ -z "$passwordalias" ]
@@ -248,10 +235,10 @@ for zipfile in $zipfiles; do
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
                                 if [[ $nextline == *'<AULDAPBindPasswordAlias'* ]]; then
-                                        auldappasswordalias=$(echo $nextline | grep -o -P '(?<=<AULDAPBindPasswordAlias class="PasswordAlias">)(?s).*(?=</AULDAPBindPasswordAlias>)')
+                                        auldappasswordalias=$(echo $nextline | grep -o -P '<AULDAPBindPasswordAlias.*>\K.*(?=</AULDAPBindPasswordAlias>)')
                                 fi
                                 if [[ $nextline == *'<MCLDAPBindPasswordAlias'* ]]; then
-                                        mcldappasswordalias=$(echo $nextline | grep -o -P '(?<=<MCLDAPBindPasswordAlias class="PasswordAlias">)(?s).*(?=</MCLDAPBindPasswordAlias>)')
+                                        mcldappasswordalias=$(echo $nextline | grep -o -P '<MCLDAPBindPasswordAlias.*>\K.*(?=</MCLDAPBindPasswordAlias>)')                                    
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                         if [ -z "$auldappasswordalias" ]
@@ -298,13 +285,13 @@ for zipfile in $zipfiles; do
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
                                 if [[ $nextline == *'<AULDAPBindPasswordAlias'* ]]; then
-                                        auldappasswordalias=$(echo $nextline | grep -o -P '(?<=<AULDAPBindPasswordAlias class="PasswordAlias">)(?s).*(?=</AULDAPBindPasswordAlias>)')
+                                        auldappasswordalias=$(echo $nextline | grep -o -P '<AULDAPBindPasswordAlias.*>\K.*(?=</AULDAPBindPasswordAlias>)')                                    
                                 fi
                                 if [[ $nextline == *'<AULTPAKeyFilePasswordAlias'* ]]; then
-                                        aultpapasswordalias=$(echo $nextline | grep -o -P '(?<=<AULTPAKeyFilePasswordAlias class="PasswordAlias">)(?s).*(?=</AULTPAKeyFilePasswordAlias>)')
+                                        aultpapasswordalias=$(echo $nextline | grep -o -P '<AULTPAKeyFilePasswordAlias.*>\K.*(?=</AULTPAKeyFilePasswordAlias>)')                                    
                                 fi
                                 if [[ $nextline == *'<AZLDAPBindPasswordAlias'* ]]; then
-                                        azldappasswordalias=$(echo $nextline | grep -o -P '(?<=<AZLDAPBindPasswordAlias class="PasswordAlias">)(?s).*(?=</AZLDAPBindPasswordAlias>)')
+                                        azldappasswordalias=$(echo $nextline | grep -o -P '<AZLDAPBindPasswordAlias.*>\K.*(?=</AZLDAPBindPasswordAlias>)')                                  
                                 fi
                                 if [[ $nextline == *"$loopend"* ]]; then
                                         if [ -z "$auldappasswordalias" ]
@@ -354,7 +341,7 @@ for zipfile in $zipfiles; do
                         while [ "$finished" != "true" ]; do
                                 read -r nextline
                                 if [[ $nextline == *'<PasswordAlias'* ]]; then
-                                        passwordalias=$(echo $nextline | grep -o -P '(?<=<PasswordAlias class="PasswordAlias">)(?s).*(?=</PasswordAlias>)')
+                                        passwordalias=$(echo $nextline | grep -o -P '<PasswordAlias.*>\K.*(?=</PasswordAlias>)')                                    
                                         echo "<TR STYLE='text-align:center'><TD>$device</TD><TD>$domain</TD><TD>$objname</TD>"
                                         echo "<TD STYLE='color:#000000'>$username</TD>"
                                         echo "<TD STYLE='color:#000000'>$pausername</TD><TD STYLE='color:#000000'>$passwordalias</TD>"
